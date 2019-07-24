@@ -1,6 +1,5 @@
 package com.demo.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,8 +9,8 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
-import com.demo.message.reponse.JwtResponse;
-import com.demo.message.reponse.ResponseMessage;
+import com.demo.message.response.JwtResponse;
+import com.demo.message.response.ResponseMessage;
 import com.demo.message.request.LoginForm;
 import com.demo.message.request.SignUpForm;
 import com.demo.model.Role;
@@ -30,9 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -66,8 +63,8 @@ public class AuthRestAPIs {
 
         String jwt = jwtProvider.generateJwtToken(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities()));
+        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
+        return ResponseEntity.ok(jwtResponse);
     }
 
     @PostMapping(value = "/signup", consumes = "multipart/form-data")
