@@ -1,4 +1,4 @@
-package com.demo.message.reponse;
+package com.demo.message.response;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -8,28 +8,16 @@ public class JwtResponse {
     private String token;
     private String type = "Bearer";
     private String username;
-    private String avata;
 
-    public JwtResponse(String jwt, String username, Collection<? extends GrantedAuthority> authorities) {
-
-    }
-
-    public String getAvata() {
-        return avata;
-    }
-
-    public void setAvata(String avata) {
-        this.avata = avata;
-    }
-
-    private Collection<? extends GrantedAuthority> authorities;
-
-    public JwtResponse(String accessToken, String username, Collection<? extends GrantedAuthority> authorities,String avata) {
+    public JwtResponse(String accessToken, String username, Collection<? extends GrantedAuthority> authorities) {
         this.token = accessToken;
         this.username = username;
         this.authorities = authorities;
-        this.avata = avata;
     }
+
+
+    private Collection<? extends GrantedAuthority> authorities;
+
 
     public String getAccessToken() {
         return token;

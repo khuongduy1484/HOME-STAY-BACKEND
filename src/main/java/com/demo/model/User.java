@@ -45,23 +45,13 @@ public class User{
     @Size(min=6, max = 100)
     private String password;
 
-    public String getAvata() {
-        return avata;
-    }
-
-    public void setAvata(String avata) {
-        this.avata = avata;
-    }
-    @NotBlank
-    @Size(min=6, max = 10000)
-    private String avata;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
+    private String avatarFileName;
 
     public boolean isEnabled() {
         return enabled;
@@ -74,13 +64,11 @@ public class User{
     public User() {
     }
 
-    public User(String name, String username, String email, String password, String avata) {
+    public User(String name, String username, String email, String password) {
         this.name = name;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.avata = avata;
-
     }
 
     public Long getId() {
@@ -89,6 +77,15 @@ public class User{
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+
+    public String getAvatarFileName() {
+        return avatarFileName;
+    }
+
+    public void setAvatarFileName(String avatarFileName) {
+        this.avatarFileName = avatarFileName;
     }
 
     public String getUsername() {
@@ -127,7 +124,7 @@ public class User{
         return roles;
     }
 
-    public void setRoles(Role role) {
-        this.roles.add(role);
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }

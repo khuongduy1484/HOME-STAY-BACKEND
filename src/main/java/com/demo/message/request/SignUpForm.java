@@ -1,4 +1,6 @@
 package com.demo.message.request;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Set;
 
 import javax.validation.constraints.*;
@@ -22,6 +24,17 @@ public class SignUpForm {
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
+
+    private MultipartFile avatar;
+
+    public MultipartFile getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(MultipartFile avatar) {
+        this.avatar = avatar;
+    }
+
 
     public String getName() {
         return name;
