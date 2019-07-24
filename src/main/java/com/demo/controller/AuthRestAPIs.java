@@ -81,18 +81,18 @@ public class AuthRestAPIs {
         System.out.println(signUpRequest);
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
-              HttpStatus.BAD_REQUEST);
+                    HttpStatus.BAD_REQUEST);
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
-              HttpStatus.BAD_REQUEST);
+                    HttpStatus.BAD_REQUEST);
         }
 
         // Creating user's account
 
         User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
-          encoder.encode(signUpRequest.getPassword()));
+                encoder.encode(signUpRequest.getPassword()));
         user.setEnabled(false);
         String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
         user.setAvatarFileName(avatarFileName);
@@ -103,18 +103,18 @@ public class AuthRestAPIs {
             switch (role) {
                 case "admin":
                     Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(adminRole);
                     break;
                 case "pm":
                     Role pmRole = roleRepository.findByName(RoleName.ROLE_PM)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(pmRole);
 
                     break;
                 default:
                     Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(userRole);
             }
         });
@@ -123,44 +123,31 @@ public class AuthRestAPIs {
 
         try {
             byte[] bytes = signUpRequest.getAvatar().getBytes();
-            Path path = Paths.get(UPLOAD_LOCATION+avatarFileName);
-            Files.write(path,bytes);
+            Path path = Paths.get(UPLOAD_LOCATION + avatarFileName);
+            Files.write(path, bytes);
         } catch (IOException exception) {
             exception.printStackTrace();
         }
 
         userRepository.save(user);
-        ConfirmationToken confirmationToken = new ConfirmationToken(user);
-
-        confirmationTokenRepository.save(confirmationToken);
-
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setSubject("Complete Registration!");
-        mailMessage.setFrom("khuongduy1484@gmail");
-        mailMessage.setText("To confirm your account, please click here : "
-                +"http://localhost:8080/api/auth/confirm-account?token="+confirmationToken.getConfirmationToken());
-
-        emailSenderService.sendEmail(mailMessage);
+        emailSenderService.sendEmail(user);
 
         return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
     }
-    @GetMapping (value = "confirm-account")
-    public  ResponseEntity<?> confirmUserAccount( @RequestParam("token")String confirmationToken)
-    {
+
+
+    @GetMapping(value = "confirm-account")
+    public ResponseEntity<?> confirmUserAccount(@RequestParam("token") String confirmationToken) {
         ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
 
-        if(token != null)
-        {
+        if (token != null) {
             User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
             user.setEnabled(true);
             userRepository.save(user);
             return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
                     HttpStatus.OK);
 
-        }
-        else
-        {
+        } else {
             return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
                     HttpStatus.BAD_REQUEST);
         }
