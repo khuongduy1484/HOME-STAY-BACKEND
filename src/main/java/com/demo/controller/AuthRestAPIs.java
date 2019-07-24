@@ -97,7 +97,7 @@ public class AuthRestAPIs {
         user.setAvatarFileName(avatarFileName);
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-          .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));;
+          .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
         roles.add(userRole);
         user.setRoles(roles);
         String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
