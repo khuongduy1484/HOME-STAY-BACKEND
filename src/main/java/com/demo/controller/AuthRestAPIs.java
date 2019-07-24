@@ -67,9 +67,7 @@ public class AuthRestAPIs {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
         String jwt = jwtProvider.generateJwtToken(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
@@ -131,7 +129,6 @@ public class AuthRestAPIs {
 
         userRepository.save(user);
         emailSenderService.sendEmail(user);
-
         return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
     }
 
