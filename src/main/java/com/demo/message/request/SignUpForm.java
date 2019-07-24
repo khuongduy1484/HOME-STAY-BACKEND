@@ -1,8 +1,6 @@
 package com.demo.message.request;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
-
 import javax.validation.constraints.*;
 
 public class SignUpForm {
@@ -18,8 +16,6 @@ public class SignUpForm {
     @Size(max = 60)
     @Email
     private String email;
-
-    private Set<String> role;
 
     @NotBlank
     @Size(min = 6, max = 40)
@@ -60,20 +56,13 @@ public class SignUpForm {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public Set<String> getRole() {
-        return this.role;
+    public String getPassword() {
+        return password;
     }
 
-    public void setRole(Set<String> role) {
-        this.role = role;
-    }
 }
 
