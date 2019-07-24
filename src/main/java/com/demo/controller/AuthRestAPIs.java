@@ -2,24 +2,24 @@ package com.demo.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.validation.Valid;
 
 import com.demo.message.reponse.JwtResponse;
 import com.demo.message.reponse.ResponseMessage;
 import com.demo.message.request.LoginForm;
-import com.demo.message.request.SignUpForm;
-import com.demo.model.Role;
+import com.demo.model.ConfirmationToken;
 import com.demo.model.RoleName;
 import com.demo.model.User;
+import com.demo.repository.ConfirmationTokenRepository;
 import com.demo.repository.RoleRepository;
 import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtProvider;
+import com.demo.security.services.EmailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,6 +34,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthRestAPIs {
+    @Autowired
+    private ConfirmationTokenRepository confirmationTokenRepository;
+
+    @Autowired
+    private EmailSenderService emailSenderService;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -46,6 +51,8 @@ public class AuthRestAPIs {
 
     @Autowired
     PasswordEncoder encoder;
+
+
 
     @Autowired
     JwtProvider jwtProvider;
@@ -76,6 +83,7 @@ public class AuthRestAPIs {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
                     HttpStatus.BAD_REQUEST);
         }
+
         String fileName = multipartFile.getOriginalFilename();
         try{
             FileCopyUtils.copy(fileName.getBytes(),new File(UPLOAD_LOCATION +fileName));
@@ -85,12 +93,47 @@ public class AuthRestAPIs {
 
         // Creating user's account
         User user = new User(name, username, email, encoder.encode(password), fileName);
+        user.setEnabled(false);
 
 //        Set<Role> roles = new HashSet<>();
 //        roles.add(roleRepository.findByName(RoleName.ROLE_USER).get());
         user.setRoles(roleRepository.findByName(RoleName.ROLE_USER).get());
         userRepository.save(user);
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
 
-        return new ResponseEntity<>(new ResponseMessage("User registered successfully!"), HttpStatus.OK);
+        confirmationTokenRepository.save(confirmationToken);
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setSubject("Complete Registration!");
+        mailMessage.setFrom("khuongduy1484@gmail");
+        mailMessage.setText("To confirm your account, please click here : "
+                +"http://localhost:8080/api/auth/confirm-account?token="+confirmationToken.getConfirmationToken());
+
+        emailSenderService.sendEmail(mailMessage);
+
+        return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
     }
+    @GetMapping (value = "confirm-account")
+    public  ResponseEntity<?> confirmUserAccount( @RequestParam("token")String confirmationToken)
+    {
+        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+
+        if(token != null)
+        {
+            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+            user.setEnabled(true);
+            userRepository.save(user);
+            return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
+                    HttpStatus.OK);
+
+        }
+        else
+        {
+            return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
 }
