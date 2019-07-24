@@ -2,6 +2,9 @@ package com.demo.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +21,7 @@ import com.demo.repository.RoleRepository;
 import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,7 +53,8 @@ public class AuthRestAPIs {
 
     @Autowired
     JwtProvider jwtProvider;
-    private static String UPLOAD_LOCATION = "/home/duy/MODULE_2/security/src/main/resources/images/";
+    @Value("${upload.location}")
+    private String UPLOAD_LOCATION;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
@@ -65,32 +70,58 @@ public class AuthRestAPIs {
         return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities()));
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestParam("username") String username, @RequestParam("name")String name, @RequestParam("password") String password , @Valid @RequestParam("email") String email, @RequestParam("avata") MultipartFile multipartFile) {
-        if (userRepository.existsByUsername(username)) {
+    @PostMapping(value = "/signup", consumes = "multipart/form-data")
+    public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
+        System.out.println(signUpRequest);
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
-                    HttpStatus.BAD_REQUEST);
+              HttpStatus.BAD_REQUEST);
         }
 
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
-                    HttpStatus.BAD_REQUEST);
-        }
-        String fileName = multipartFile.getOriginalFilename();
-        try{
-            FileCopyUtils.copy(fileName.getBytes(),new File(UPLOAD_LOCATION +fileName));
-        }catch (IOException ex){
-            ex.printStackTrace();
+              HttpStatus.BAD_REQUEST);
         }
 
         // Creating user's account
-        User user = new User(name, username, email, encoder.encode(password), fileName);
+        User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
+          encoder.encode(signUpRequest.getPassword()));
+        String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
+        user.setAvatarFileName(avatarFileName);
+        Set<String> strRoles = signUpRequest.getRole();
+        Set<Role> roles = new HashSet<>();
 
-//        Set<Role> roles = new HashSet<>();
-//        roles.add(roleRepository.findByName(RoleName.ROLE_USER).get());
-        user.setRoles(roleRepository.findByName(RoleName.ROLE_USER).get());
+        strRoles.forEach(role -> {
+            switch (role) {
+                case "admin":
+                    Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                    roles.add(adminRole);
+
+                    break;
+                case "pm":
+                    Role pmRole = roleRepository.findByName(RoleName.ROLE_PM)
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                    roles.add(pmRole);
+
+                    break;
+                default:
+                    Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                    roles.add(userRole);
+            }
+        });
+
+        user.setRoles(roles);
         userRepository.save(user);
 
+        try {
+            byte[] bytes = signUpRequest.getAvatar().getBytes();
+            Path path = Paths.get(UPLOAD_LOCATION+avatarFileName);
+            Files.write(path,bytes);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
         return new ResponseEntity<>(new ResponseMessage("User registered successfully!"), HttpStatus.OK);
     }
 }
