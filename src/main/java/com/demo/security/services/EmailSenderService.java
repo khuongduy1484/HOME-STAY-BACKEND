@@ -11,32 +11,32 @@ import org.springframework.stereotype.Service;
 
 @Service("emailSenderService")
 public class EmailSenderService {
-    @Autowired
-    private ConfirmationTokenRepository confirmationTokenRepository;
-    private JavaMailSender javaMailSender;
+  @Autowired
+  private ConfirmationTokenRepository confirmationTokenRepository;
+  private JavaMailSender javaMailSender;
 
-    @Autowired
-    public EmailSenderService(JavaMailSender javaMailSender) {
-        this.javaMailSender = javaMailSender;
-    }
+  @Autowired
+  public EmailSenderService(JavaMailSender javaMailSender) {
+    this.javaMailSender = javaMailSender;
+  }
 
-    @Async
-    public void sendEmail(SimpleMailMessage email) {
-        javaMailSender.send(email);
-    }
+  @Async
+  public void sendEmail(SimpleMailMessage email) {
+    javaMailSender.send(email);
+  }
 
-    public void sendEmail(User user) {
-        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+  public void sendEmail(User user) {
+    ConfirmationToken confirmationToken = new ConfirmationToken(user);
 
-        confirmationTokenRepository.save(confirmationToken);
+    confirmationTokenRepository.save(confirmationToken);
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setSubject("Complete Registration!");
-        mailMessage.setFrom("khuongduy1484@gmail");
-        mailMessage.setText("To confirm your account, please click here : "
-                + "http://localhost:8080/api/auth/confirm-account?token=" + confirmationToken.getConfirmationToken());
+    SimpleMailMessage mailMessage = new SimpleMailMessage();
+    mailMessage.setTo(user.getEmail());
+    mailMessage.setSubject("Complete Registration!");
+    mailMessage.setFrom("khuongduy1484@gmail");
+    mailMessage.setText("To confirm your account, please click here : "
+      + "http://localhost:8080/api/auth/confirm-account?token=" + confirmationToken.getConfirmationToken());
 
-        sendEmail(mailMessage);
-    }
+    sendEmail(mailMessage);
+  }
 }

@@ -36,95 +36,95 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthRestAPIs {
-    @Autowired
-    private ConfirmationTokenRepository confirmationTokenRepository;
+  @Autowired
+  private ConfirmationTokenRepository confirmationTokenRepository;
 
-    @Autowired
-    private EmailSenderService emailSenderService;
+  @Autowired
+  private EmailSenderService emailSenderService;
 
-    @Autowired
-    private MultipartFileService multipartFileService;
-    @Autowired
-    AuthenticationManager authenticationManager;
+  @Autowired
+  private MultipartFileService multipartFileService;
+  @Autowired
+  AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+  @Autowired
+  UserRepository userRepository;
 
-    @Autowired
-    RoleRepository roleRepository;
+  @Autowired
+  RoleRepository roleRepository;
 
-    @Autowired
-    PasswordEncoder encoder;
+  @Autowired
+  PasswordEncoder encoder;
 
-    @Autowired
-    JwtProvider jwtProvider;
-    @Value("${upload.location}")
-    private String UPLOAD_LOCATION;
+  @Autowired
+  JwtProvider jwtProvider;
+  @Value("${upload.location}")
+  private String UPLOAD_LOCATION;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
+  @PostMapping("/signin")
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    Authentication authentication = authenticationManager.authenticate(
+      new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwt = jwtProvider.generateJwtToken(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
-        return ResponseEntity.ok(jwtResponse);
+    String jwt = jwtProvider.generateJwtToken(authentication);
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
+    return ResponseEntity.ok(jwtResponse);
+  }
+
+  @PostMapping(value = "/signup", consumes = "multipart/form-data")
+  public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
+    System.out.println(signUpRequest);
+    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
+        HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping(value = "/signup", consumes = "multipart/form-data")
-    public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
-        System.out.println(signUpRequest);
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        // Creating user's account
-
-        User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-        user.setEnabled(false);
-        String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
-        user.setAvatarFileName(avatarFileName);
-        Set<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-          .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
-        roles.add(userRole);
-        user.setRoles(roles);
-        String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
-        new File(saveLocation).mkdirs();
-        multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
-
-        userRepository.save(user);
-        emailSenderService.sendEmail(user);
-
-        return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
+    if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
+        HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping(value = "confirm-account")
-    public ResponseEntity<?> confirmUserAccount(@RequestParam("token") String confirmationToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+    // Creating user's account
 
-        if (token != null) {
-            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
-            user.setEnabled(true);
-            userRepository.save(user);
-            return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
-                    HttpStatus.OK);
+    User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
+      encoder.encode(signUpRequest.getPassword()));
+    user.setEnabled(false);
+    String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
+    user.setAvatarFileName(avatarFileName);
+    Set<Role> roles = new HashSet<>();
+    Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+    roles.add(userRole);
+    user.setRoles(roles);
+    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
+    new File(saveLocation).mkdirs();
+    multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
-        } else {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
-                    HttpStatus.BAD_REQUEST);
-        }
+    userRepository.save(user);
+    emailSenderService.sendEmail(user);
 
+    return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
+  }
+
+  @GetMapping(value = "confirm-account")
+  public ResponseEntity<?> confirmUserAccount(@RequestParam("token") String confirmationToken) {
+    ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+
+    if (token != null) {
+      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      user.setEnabled(true);
+      userRepository.save(user);
+      return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
+        HttpStatus.OK);
+
+    } else {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
+        HttpStatus.BAD_REQUEST);
     }
+
+  }
 }
