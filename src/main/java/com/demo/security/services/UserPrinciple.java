@@ -29,9 +29,11 @@ public class UserPrinciple implements UserDetails {
 
   private Collection<? extends GrantedAuthority> authorities;
 
+  private String avatarFileName;
+
   public UserPrinciple(Long id, String name,
                        String username, String email, String password,Boolean enabled,
-                       Collection<? extends GrantedAuthority> authorities) {
+                       Collection<? extends GrantedAuthority> authorities, String avatarFileName) {
     this.id = id;
     this.name = name;
     this.username = username;
@@ -39,6 +41,7 @@ public class UserPrinciple implements UserDetails {
     this.password = password;
     this.enabled = enabled;
     this.authorities = authorities;
+    this.avatarFileName = avatarFileName;
   }
 
   public static UserPrinciple build(User user) {
@@ -53,7 +56,8 @@ public class UserPrinciple implements UserDetails {
       user.getEmail(),
       user.getPassword(),
       user.isEnabled(),
-      authorities
+      authorities,
+      user.getAvatarFileName()
     );
   }
 
@@ -67,6 +71,10 @@ public class UserPrinciple implements UserDetails {
 
   public String getEmail() {
     return email;
+  }
+
+  public String getAvatarFileName() {
+    return avatarFileName;
   }
 
   @Override
