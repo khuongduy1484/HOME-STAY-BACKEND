@@ -8,11 +8,13 @@ public class JwtResponse {
   private String token;
   private String type = "Bearer";
   private String username;
+  private String avatarLink;
 
-  public JwtResponse(String accessToken, String username, Collection<? extends GrantedAuthority> authorities) {
+  public JwtResponse(String accessToken, String username, Collection<? extends GrantedAuthority> authorities, String avatarLink) {
     this.token = accessToken;
     this.username = username;
     this.authorities = authorities;
+    this.avatarLink = avatarLink;
   }
 
 
@@ -45,5 +47,13 @@ public class JwtResponse {
 
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return authorities;
+  }
+
+  public String getAvatarLink() {
+    return avatarLink;
+  }
+
+  public void setAvatarLink(String avatarLink) {
+    this.avatarLink = avatarLink;
   }
 }
