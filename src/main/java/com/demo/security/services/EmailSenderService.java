@@ -25,7 +25,7 @@ public class EmailSenderService {
         javaMailSender.send(email);
     }
 
-    public void sendEmail(User user) {
+    public void sendEmailCreateUser(User user) {
         ConfirmationToken confirmationToken = new ConfirmationToken(user);
 
         confirmationTokenRepository.save(confirmationToken);
@@ -36,6 +36,20 @@ public class EmailSenderService {
         mailMessage.setFrom("khuongduy1484@gmail");
         mailMessage.setText("To confirm your account, please click here : "
                 + "http://localhost:8080/api/auth/confirm-account?token=" + confirmationToken.getConfirmationToken());
+
+        sendEmail(mailMessage);
+    }
+    public void sendEmailForgotPassword(User user) {
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+
+        confirmationTokenRepository.save(confirmationToken);
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setSubject("Complete Password Reset!");
+        mailMessage.setFrom("khuongduy1484@gmail");
+        mailMessage.setText("To complete the password reset process, please click here : "
+          + "http://localhost:8080/api/auth/confirm-reset?token=" + confirmationToken.getConfirmationToken());
 
         sendEmail(mailMessage);
     }

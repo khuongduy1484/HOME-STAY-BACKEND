@@ -66,7 +66,7 @@ public class AuthRestAPIs {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+          new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -81,18 +81,18 @@ public class AuthRestAPIs {
         System.out.println(signUpRequest);
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
-                    HttpStatus.BAD_REQUEST);
+              HttpStatus.BAD_REQUEST);
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
-                    HttpStatus.BAD_REQUEST);
+              HttpStatus.BAD_REQUEST);
         }
 
         // Creating user's account
 
         User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+          encoder.encode(signUpRequest.getPassword()));
         user.setEnabled(false);
         String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
         user.setAvatarFileName(avatarFileName);
@@ -103,18 +103,18 @@ public class AuthRestAPIs {
             switch (role) {
                 case "admin":
                     Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
-                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(adminRole);
                     break;
                 case "pm":
                     Role pmRole = roleRepository.findByName(RoleName.ROLE_PM)
-                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(pmRole);
 
                     break;
                 default:
                     Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                            .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
                     roles.add(userRole);
             }
         });
@@ -125,12 +125,13 @@ public class AuthRestAPIs {
             byte[] bytes = signUpRequest.getAvatar().getBytes();
             Path path = Paths.get(UPLOAD_LOCATION + avatarFileName);
             Files.write(path, bytes);
-        } catch (IOException exception) {
+        }
+        catch (IOException exception) {
             exception.printStackTrace();
         }
 
         userRepository.save(user);
-        emailSenderService.sendEmail(user);
+        emailSenderService.sendEmailCreateUser(user);
 
         return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
     }
@@ -145,12 +146,58 @@ public class AuthRestAPIs {
             user.setEnabled(true);
             userRepository.save(user);
             return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
-                    HttpStatus.OK);
+              HttpStatus.OK);
 
-        } else {
+        }
+        else {
             return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
-                    HttpStatus.BAD_REQUEST);
+              HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @GetMapping(value = "/forgot-password")
+    public ResponseEntity<?> forgotUserPassword(@RequestParam("gmail") String gmail) {
+        User existingUser = userRepository.findByEmailIgnoreCase(gmail);
+        if (existingUser != null) {
+            emailSenderService.sendEmailForgotPassword(existingUser);
+            return new ResponseEntity<>(
+              new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
+              HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(new ResponseMessage("This email address does not exist!"),
+              HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(value = "/confirm-reset")
+    public ResponseEntity<?> validateResetToken(@RequestParam("token") String confirmationToken) {
+        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+        if (token != null) {
+            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+            user.setEnabled(true);
+            userRepository.save(user);
+            return new ResponseEntity<>(new ResponseMessage("resetPassword"),
+              HttpStatus.OK);
+
+        }
+        else {
+            return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+              HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping(value = "/reset-password")
+    public ResponseEntity<?>resetUserPassword(@RequestParam("gmail") String gmail,@RequestParam("password") String password){
+        if (gmail !=null){
+            User tokenUser = userRepository.findByEmailIgnoreCase(gmail);
+            tokenUser.setPassword(encoder.encode(password));
+            userRepository.save(tokenUser);
+            return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
+        }else {
+            return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+              HttpStatus.BAD_REQUEST);
+        }
     }
 }
