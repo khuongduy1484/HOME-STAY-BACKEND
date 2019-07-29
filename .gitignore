@@ -32,4 +32,5 @@ out/
 .vscode/
 
 ### Application Properties ###
-*.properties
+.properties
+application.properties
