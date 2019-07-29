@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -108,7 +109,7 @@ public class AuthRestAPIs {
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
     userRepository.save(user);
-    emailSenderService.sendEmail(user);
+    emailSenderService.sendEmailCreateUser(user);
 
     return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
   }
@@ -129,5 +130,51 @@ public class AuthRestAPIs {
         HttpStatus.BAD_REQUEST);
     }
 
+  }
+
+
+  @GetMapping(value = "/forgot-password")
+  public ResponseEntity<?> forgotUserPassword(@RequestParam("gmail") String gmail) {
+    User existingUser = userRepository.findByEmailIgnoreCase(gmail);
+    if (existingUser != null) {
+      emailSenderService.sendEmailForgotPassword(existingUser);
+      return new ResponseEntity<>(
+        new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
+        HttpStatus.OK);
+    }
+    else {
+      return new ResponseEntity<>(new ResponseMessage("This email address does not exist!"),
+        HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @GetMapping(value = "/confirm-reset")
+  public ResponseEntity<?> validateResetToken(@RequestParam("token") String confirmationToken) {
+    ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+    if (token != null) {
+      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      user.setEnabled(true);
+      userRepository.save(user);
+      return new ResponseEntity<>(new ResponseMessage("resetPassword"),
+        HttpStatus.OK);
+
+    }
+    else {
+      return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+        HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PostMapping(value = "/reset-password")
+  public ResponseEntity<?>resetUserPassword(@RequestParam("gmail") String gmail,@RequestParam("password") String password){
+    if (gmail !=null){
+      User tokenUser = userRepository.findByEmailIgnoreCase(gmail);
+      tokenUser.setPassword(encoder.encode(password));
+      userRepository.save(tokenUser);
+      return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
+    }else {
+      return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+        HttpStatus.BAD_REQUEST);
+    }
   }
 }
