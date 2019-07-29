@@ -1,9 +1,6 @@
 package com.demo.controller;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +19,8 @@ import com.demo.repository.RoleRepository;
 import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.EmailSenderService;
+import com.demo.security.services.MultipartFileService;
+import com.demo.security.services.UserPrinciple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -39,165 +38,143 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthRestAPIs {
-    @Autowired
-    private ConfirmationTokenRepository confirmationTokenRepository;
+  @Autowired
+  private ConfirmationTokenRepository confirmationTokenRepository;
 
-    @Autowired
-    private EmailSenderService emailSenderService;
+  @Autowired
+  private EmailSenderService emailSenderService;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+  @Autowired
+  private MultipartFileService multipartFileService;
+  @Autowired
+  AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+  @Autowired
+  UserRepository userRepository;
 
-    @Autowired
-    RoleRepository roleRepository;
+  @Autowired
+  RoleRepository roleRepository;
 
-    @Autowired
-    PasswordEncoder encoder;
+  @Autowired
+  PasswordEncoder encoder;
 
-    @Autowired
-    JwtProvider jwtProvider;
-    @Value("${upload.location}")
-    private String UPLOAD_LOCATION;
+  @Autowired
+  JwtProvider jwtProvider;
+  @Value("${upload.location}")
+  private String UPLOAD_LOCATION;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
+  @PostMapping("/signin")
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    Authentication authentication = authenticationManager.authenticate(
+      new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwt = jwtProvider.generateJwtToken(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
-        return ResponseEntity.ok(jwtResponse);
+    String jwt = jwtProvider.generateJwtToken(authentication);
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    UserPrinciple userPrinciple = (UserPrinciple) userDetails;
+    String avatarLink =userPrinciple.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+userPrinciple.getAvatarFileName():"";
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
+    return ResponseEntity.ok(jwtResponse);
+  }
+
+  @PostMapping(value = "/signup", consumes = "multipart/form-data")
+  public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
+    System.out.println(signUpRequest);
+    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
+        HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping(value = "/signup", consumes = "multipart/form-data")
-    public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
-        System.out.println(signUpRequest);
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
-              HttpStatus.BAD_REQUEST);
-        }
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
-              HttpStatus.BAD_REQUEST);
-        }
-
-        // Creating user's account
-
-        User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
-          encoder.encode(signUpRequest.getPassword()));
-        user.setEnabled(false);
-        String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
-        user.setAvatarFileName(avatarFileName);
-        Set<String> strRoles = signUpRequest.getRole();
-        Set<Role> roles = new HashSet<>();
-
-        strRoles.forEach(role -> {
-            switch (role) {
-                case "admin":
-                    Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
-                    roles.add(adminRole);
-                    break;
-                case "pm":
-                    Role pmRole = roleRepository.findByName(RoleName.ROLE_PM)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
-                    roles.add(pmRole);
-
-                    break;
-                default:
-                    Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
-                    roles.add(userRole);
-            }
-        });
-
-        user.setRoles(roles);
-
-        try {
-            byte[] bytes = signUpRequest.getAvatar().getBytes();
-            Path path = Paths.get(UPLOAD_LOCATION + avatarFileName);
-            Files.write(path, bytes);
-        }
-        catch (IOException exception) {
-            exception.printStackTrace();
-        }
-
-        userRepository.save(user);
-        emailSenderService.sendEmailCreateUser(user);
-
-        return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
+    if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
+        HttpStatus.BAD_REQUEST);
     }
 
+    // Creating user's account
 
-    @GetMapping(value = "confirm-account")
-    public ResponseEntity<?> confirmUserAccount(@RequestParam("token") String confirmationToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+    User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
+      encoder.encode(signUpRequest.getPassword()));
+    user.setEnabled(false);
+    String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
+    user.setAvatarFileName(avatarFileName);
+    Set<Role> roles = new HashSet<>();
+    Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+      .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+    roles.add(userRole);
+    user.setRoles(roles);
+    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
+    new File(saveLocation).mkdirs();
+    multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
-        if (token != null) {
-            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
-            user.setEnabled(true);
-            userRepository.save(user);
-            return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
-              HttpStatus.OK);
+    userRepository.save(user);
+    emailSenderService.sendEmailCreateUser(user);
 
-        }
-        else {
-            return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
-              HttpStatus.BAD_REQUEST);
-        }
+    return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
+  }
 
+  @GetMapping(value = "confirm-account")
+  public ResponseEntity<?> confirmUserAccount(@RequestParam("token") String confirmationToken) {
+    ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+
+    if (token != null) {
+      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      user.setEnabled(true);
+      userRepository.save(user);
+      return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
+        HttpStatus.OK);
+
+    } else {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
+        HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping(value = "/forgot-password")
-    public ResponseEntity<?> forgotUserPassword(@RequestParam("gmail") String gmail) {
-        User existingUser = userRepository.findByEmailIgnoreCase(gmail);
-        if (existingUser != null) {
-            emailSenderService.sendEmailForgotPassword(existingUser);
-            return new ResponseEntity<>(
-              new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
-              HttpStatus.OK);
-        }
-        else {
-            return new ResponseEntity<>(new ResponseMessage("This email address does not exist!"),
-              HttpStatus.BAD_REQUEST);
-        }
-    }
+  }
 
-    @GetMapping(value = "/confirm-reset")
-    public ResponseEntity<?> validateResetToken(@RequestParam("token") String confirmationToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
-        if (token != null) {
-            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
-            user.setEnabled(true);
-            userRepository.save(user);
-            return new ResponseEntity<>(new ResponseMessage("resetPassword"),
-              HttpStatus.OK);
 
-        }
-        else {
-            return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
-              HttpStatus.BAD_REQUEST);
-        }
+  @GetMapping(value = "/forgot-password")
+  public ResponseEntity<?> forgotUserPassword(@RequestParam("gmail") String gmail) {
+    User existingUser = userRepository.findByEmailIgnoreCase(gmail);
+    if (existingUser != null) {
+      emailSenderService.sendEmailForgotPassword(existingUser);
+      return new ResponseEntity<>(
+        new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
+        HttpStatus.OK);
     }
+    else {
+      return new ResponseEntity<>(new ResponseMessage("This email address does not exist!"),
+        HttpStatus.BAD_REQUEST);
+    }
+  }
 
-    @PostMapping(value = "/reset-password")
-    public ResponseEntity<?>resetUserPassword(@RequestParam("gmail") String gmail,@RequestParam("password") String password){
-        if (gmail !=null){
-            User tokenUser = userRepository.findByEmailIgnoreCase(gmail);
-            tokenUser.setPassword(encoder.encode(password));
-            userRepository.save(tokenUser);
-            return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
-              HttpStatus.BAD_REQUEST);
-        }
+  @GetMapping(value = "/confirm-reset")
+  public ResponseEntity<?> validateResetToken(@RequestParam("token") String confirmationToken) {
+    ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+    if (token != null) {
+      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      user.setEnabled(true);
+      userRepository.save(user);
+      return new ResponseEntity<>(new ResponseMessage("resetPassword"),
+        HttpStatus.OK);
+
     }
+    else {
+      return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+        HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PostMapping(value = "/reset-password")
+  public ResponseEntity<?>resetUserPassword(@RequestParam("gmail") String gmail,@RequestParam("password") String password){
+    if (gmail !=null){
+      User tokenUser = userRepository.findByEmailIgnoreCase(gmail);
+      tokenUser.setPassword(encoder.encode(password));
+      userRepository.save(tokenUser);
+      return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
+    }else {
+      return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
+        HttpStatus.BAD_REQUEST);
+    }
+  }
 }
