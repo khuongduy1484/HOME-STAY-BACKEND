@@ -20,6 +20,7 @@ import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.EmailSenderService;
 import com.demo.security.services.MultipartFileService;
+import com.demo.security.services.UserPrinciple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -71,7 +72,9 @@ public class AuthRestAPIs {
 
     String jwt = jwtProvider.generateJwtToken(authentication);
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities());
+    UserPrinciple userPrinciple = (UserPrinciple) userDetails;
+    String avatarLink =userPrinciple.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+userPrinciple.getAvatarFileName():"";
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
     return ResponseEntity.ok(jwtResponse);
   }
 
