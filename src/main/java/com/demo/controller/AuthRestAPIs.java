@@ -104,7 +104,7 @@ public class AuthRestAPIs {
       .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
     roles.add(userRole);
     user.setRoles(roles);
-    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
+    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"/avatar/";
     new File(saveLocation).mkdirs();
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
