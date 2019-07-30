@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import com.demo.message.request.UpdateInfoForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
 import com.demo.message.request.LoginForm;
@@ -46,6 +47,7 @@ public class AuthRestAPIs {
 
   @Autowired
   private MultipartFileService multipartFileService;
+
   @Autowired
   AuthenticationManager authenticationManager;
 
@@ -99,11 +101,13 @@ public class AuthRestAPIs {
     user.setEnabled(false);
     String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
     user.setAvatarFileName(avatarFileName);
+
     Set<Role> roles = new HashSet<>();
     Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
       .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
     roles.add(userRole);
     user.setRoles(roles);
+
     String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
     new File(saveLocation).mkdirs();
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
@@ -177,4 +181,5 @@ public class AuthRestAPIs {
         HttpStatus.BAD_REQUEST);
     }
   }
+
 }
