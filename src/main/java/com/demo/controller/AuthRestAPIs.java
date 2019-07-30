@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import com.demo.message.request.ResetPasswordForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
 import com.demo.message.request.LoginForm;
@@ -133,10 +134,12 @@ public class AuthRestAPIs {
   }
 
 
-  @GetMapping(value = "/forgot-password")
-  public ResponseEntity<?> forgotUserPassword(@RequestParam("gmail") String gmail) {
+  @PostMapping(value = "/forgot-password")
+  public ResponseEntity<?> forgotUserPassword(@RequestBody String gmail) {
     User existingUser = userRepository.findByEmailIgnoreCase(gmail);
     if (existingUser != null) {
+      existingUser.setEnabled(false);
+      userRepository.save(existingUser);
       emailSenderService.sendEmailForgotPassword(existingUser);
       return new ResponseEntity<>(
         new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
@@ -166,10 +169,10 @@ public class AuthRestAPIs {
   }
 
   @PostMapping(value = "/reset-password")
-  public ResponseEntity<?>resetUserPassword(@RequestParam("gmail") String gmail,@RequestParam("password") String password){
-    if (gmail !=null){
-      User tokenUser = userRepository.findByEmailIgnoreCase(gmail);
-      tokenUser.setPassword(encoder.encode(password));
+  public ResponseEntity<?>resetUserPassword( @RequestBody ResetPasswordForm resetPasswordForm){
+    if (resetPasswordForm.getGmail() !=null){
+      User tokenUser = userRepository.findByEmailIgnoreCase(resetPasswordForm.getGmail());
+      tokenUser.setPassword(encoder.encode(resetPasswordForm.getPassword()));
       userRepository.save(tokenUser);
       return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
     }else {
