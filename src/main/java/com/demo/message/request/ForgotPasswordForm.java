@@ -3,7 +3,7 @@ package com.demo.message.request;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-public class ResetPasswordForm {
+public class ForgotPasswordForm {
   @NotBlank
   private String gmail;
 

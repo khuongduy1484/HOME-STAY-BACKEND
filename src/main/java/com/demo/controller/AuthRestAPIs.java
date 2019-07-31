@@ -6,8 +6,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
-import com.demo.message.request.UpdateInfoForm;
-import com.demo.message.request.ResetPasswordForm;
+import com.demo.message.request.ForgotPasswordForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
 import com.demo.message.request.LoginForm;
@@ -27,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -109,7 +107,7 @@ public class AuthRestAPIs {
     roles.add(userRole);
     user.setRoles(roles);
 
-    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
+    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"/avatar/";
     new File(saveLocation).mkdirs();
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
@@ -173,7 +171,7 @@ public class AuthRestAPIs {
   }
 
   @PostMapping(value = "/reset-password")
-  public ResponseEntity<?>resetUserPassword( @RequestBody ResetPasswordForm resetPasswordForm){
+  public ResponseEntity<?>resetUserPassword( @RequestBody ForgotPasswordForm resetPasswordForm){
     if (resetPasswordForm.getGmail() !=null){
       User tokenUser = userRepository.findByEmailIgnoreCase(resetPasswordForm.getGmail());
       tokenUser.setPassword(encoder.encode(resetPasswordForm.getPassword()));
