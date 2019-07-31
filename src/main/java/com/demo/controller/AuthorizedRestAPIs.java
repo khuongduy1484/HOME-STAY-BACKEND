@@ -111,10 +111,10 @@ public class AuthorizedRestAPIs {
       return new ResponseEntity<>(new ResponseMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
     }
     boolean matches = encoder.matches(updatePasswordForm.getCurrentPassword(), user.getPassword());
-    String current = encoder.encode(updatePasswordForm.getNewPassword());
-    if (current != null) {
+    String newPassword = encoder.encode(updatePasswordForm.getNewPassword());
+    if (newPassword != null) {
       if (matches) {
-        user.setPassword(current);
+        user.setPassword(newPassword);
         userService.save(user);
       }
       else {
