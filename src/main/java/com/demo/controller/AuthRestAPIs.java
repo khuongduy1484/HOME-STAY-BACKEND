@@ -6,7 +6,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
-import com.demo.message.request.ForgotPasswordForm;
+import com.demo.message.request.ResetPasswordForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
 import com.demo.message.request.LoginForm;
@@ -16,16 +16,17 @@ import com.demo.model.Role;
 import com.demo.model.RoleName;
 import com.demo.model.User;
 import com.demo.repository.ConfirmationTokenRepository;
-import com.demo.repository.RoleRepository;
-import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.EmailSenderService;
 import com.demo.security.services.MultipartFileService;
 import com.demo.security.services.UserPrinciple;
+import com.demo.service.RoleService;
+import com.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -51,10 +52,10 @@ public class AuthRestAPIs {
   AuthenticationManager authenticationManager;
 
   @Autowired
-  UserRepository userRepository;
+  UserService userService;
 
   @Autowired
-  RoleRepository roleRepository;
+  RoleService roleService;
 
   @Autowired
   PasswordEncoder encoder;
@@ -83,12 +84,12 @@ public class AuthRestAPIs {
   @PostMapping(value = "/signup", consumes = "multipart/form-data")
   public ResponseEntity<?> registerUser(@Valid @ModelAttribute SignUpForm signUpRequest) {
     System.out.println(signUpRequest);
-    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+    if (userService.existsByUsername(signUpRequest.getUsername())) {
       return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
         HttpStatus.BAD_REQUEST);
     }
 
-    if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+    if (userService.existsByEmail(signUpRequest.getEmail())) {
       return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
         HttpStatus.BAD_REQUEST);
     }
@@ -102,7 +103,7 @@ public class AuthRestAPIs {
     user.setAvatarFileName(avatarFileName);
 
     Set<Role> roles = new HashSet<>();
-    Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+    Role userRole = roleService.findByName(RoleName.ROLE_USER)
       .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
     roles.add(userRole);
     user.setRoles(roles);
@@ -111,7 +112,7 @@ public class AuthRestAPIs {
     new File(saveLocation).mkdirs();
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
-    userRepository.save(user);
+    userService.save(user);
     emailSenderService.sendEmailCreateUser(user);
 
     return new ResponseEntity<>(new ResponseMessage("Please login your email to confirm"), HttpStatus.OK);
@@ -122,9 +123,9 @@ public class AuthRestAPIs {
     ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
 
     if (token != null) {
-      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      User user = userService.findByEmailIgnoreCase(token.getUser().getEmail());
       user.setEnabled(true);
-      userRepository.save(user);
+      userService.save(user);
       return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
         HttpStatus.OK);
 
@@ -138,10 +139,10 @@ public class AuthRestAPIs {
 
   @PostMapping(value = "/forgot-password")
   public ResponseEntity<?> forgotUserPassword(@RequestBody String gmail) {
-    User existingUser = userRepository.findByEmailIgnoreCase(gmail);
+    User existingUser = userService.findByEmailIgnoreCase(gmail);
     if (existingUser != null) {
       existingUser.setEnabled(false);
-      userRepository.save(existingUser);
+      userService.save(existingUser);
       emailSenderService.sendEmailForgotPassword(existingUser);
       return new ResponseEntity<>(
         new ResponseMessage("Request to reset password received. Check your inbox for the reset link"),
@@ -157,9 +158,9 @@ public class AuthRestAPIs {
   public ResponseEntity<?> validateResetToken(@RequestParam("token") String confirmationToken) {
     ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
     if (token != null) {
-      User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+      User user = userService.findByEmailIgnoreCase(token.getUser().getEmail());
       user.setEnabled(true);
-      userRepository.save(user);
+      userService.save(user);
       return new ResponseEntity<>(new ResponseMessage("resetPassword"),
         HttpStatus.OK);
 
@@ -171,11 +172,11 @@ public class AuthRestAPIs {
   }
 
   @PostMapping(value = "/reset-password")
-  public ResponseEntity<?>resetUserPassword( @RequestBody ForgotPasswordForm resetPasswordForm){
+  public ResponseEntity<?>resetUserPassword( @RequestBody ResetPasswordForm resetPasswordForm){
     if (resetPasswordForm.getGmail() !=null){
-      User tokenUser = userRepository.findByEmailIgnoreCase(resetPasswordForm.getGmail());
+      User tokenUser = userService.findByEmailIgnoreCase(resetPasswordForm.getGmail());
       tokenUser.setPassword(encoder.encode(resetPasswordForm.getPassword()));
-      userRepository.save(tokenUser);
+      userService.save(tokenUser);
       return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
     }else {
       return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),

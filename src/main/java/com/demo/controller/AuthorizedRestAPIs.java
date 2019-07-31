@@ -5,11 +5,11 @@ import com.demo.message.request.UpdatePasswordForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
 import com.demo.model.User;
-import com.demo.repository.UserRepository;
 import com.demo.security.jwt.JwtAuthTokenFilter;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.MultipartFileService;
 import com.demo.security.services.UserDetailsServiceImpl;
+import com.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -28,7 +28,7 @@ import javax.validation.Valid;
 @RequestMapping("/api")
 public class AuthorizedRestAPIs {
   @Autowired
-  UserRepository userRepository;
+  UserService userService;
 
   @Autowired
   UserDetailsServiceImpl userDetailsService;
@@ -71,8 +71,8 @@ public class AuthorizedRestAPIs {
     String jwt = authenticationJwtTokenFilter.getJwt(request);
     String userName = jwtProvider.getUserNameFromJwtToken(jwt);
     User user;
-    try {
-      user = userRepository.findByUsername(userName).orElseThrow(
+    try{
+      user = userService.findByUsername(userName).orElseThrow(
         () -> new UsernameNotFoundException("User Not Found with -> username or email : " + userName));
     }
     catch (UsernameNotFoundException exception) {
@@ -88,7 +88,7 @@ public class AuthorizedRestAPIs {
       String saveLocation = UPLOAD_LOCATION + user.getUsername() + "/avatar/";
       multipartFileService.saveMultipartFile(saveLocation, updateInfoForm.getAvatar(), avatarFileName);
     }
-    User save = userRepository.save(user);
+    User save = userService.save(user);
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
     String avatarLink = user.getAvatarFileName() != null ? "resources/images/" + userDetails.getUsername() + "/avatar/" + user.getAvatarFileName() : "";
@@ -104,7 +104,7 @@ public class AuthorizedRestAPIs {
 
     User user;
     try {
-      user = userRepository.findByUsername(userName).orElseThrow(
+      user = userService.findByUsername(userName).orElseThrow(
         () -> new UsernameNotFoundException("User Not Found with -> username or email : " + userName));
     }
     catch (UsernameNotFoundException exception) {
@@ -115,7 +115,7 @@ public class AuthorizedRestAPIs {
     if (current != null) {
       if (matches) {
         user.setPassword(current);
-        userRepository.save(user);
+        userService.save(user);
       }
       else {
         return new ResponseEntity<>(new ResponseMessage("Incorrect password"),
