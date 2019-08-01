@@ -93,10 +93,16 @@ public class AuthRestAPIs {
         HttpStatus.BAD_REQUEST);
     }
 
+    if (userService.existsByPhoneNumber(signUpRequest.getPhoneNumber())){
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
+        HttpStatus.BAD_REQUEST);
+    }
+
     // Creating user's account
 
     User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
-      encoder.encode(signUpRequest.getPassword()));
+      signUpRequest.getBirthday(), signUpRequest.getGender(), signUpRequest.getAddress(),
+      signUpRequest.getPhoneNumber(), encoder.encode(signUpRequest.getPassword()));
     user.setEnabled(false);
     String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
     user.setAvatarFileName(avatarFileName);

@@ -75,7 +75,22 @@ public class AuthorizedRestAPIs {
     if (updateInfoForm.getName()!=null){
       user.setName(updateInfoForm.getName());
     }
-
+    if (updateInfoForm.getBirthday()!=null){
+      user.setBirthday(updateInfoForm.getBirthday());
+    }
+    if (updateInfoForm.getGender()!=null){
+      user.setGender(updateInfoForm.getGender());
+    }
+    if (updateInfoForm.getAddress()!=null){
+      user.setAddress(updateInfoForm.getAddress());
+    }
+    if (updateInfoForm.getPhoneNumber()!=null){
+      if (userService.existsByPhoneNumber(updateInfoForm.getPhoneNumber())){
+        return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
+          HttpStatus.BAD_REQUEST);
+      }
+      user.setPhoneNumber(updateInfoForm.getPhoneNumber());
+    }
     if (updateInfoForm.getAvatar()!=null){
       String avatarFileName = updateInfoForm.getAvatar().getOriginalFilename();
       user.setAvatarFileName(avatarFileName);
