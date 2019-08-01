@@ -27,6 +27,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public Boolean existsByPhoneNumber(String phoneNumber) {
+    return userRepository.existsByPhoneNumber(phoneNumber);
+  }
+
+  @Override
   public User findByEmailIgnoreCase(String email) {
     return userRepository.findByEmailIgnoreCase(email);
   }

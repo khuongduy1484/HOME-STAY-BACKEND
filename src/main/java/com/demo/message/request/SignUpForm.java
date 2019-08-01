@@ -1,7 +1,9 @@
 package com.demo.message.request;
+import com.demo.model.Gender;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
+import java.util.Date;
 
 public class SignUpForm {
   @NotBlank
@@ -16,6 +18,16 @@ public class SignUpForm {
   @Size(max = 60)
   @Email
   private String email;
+
+  @Past
+  private Date birthday;
+
+  private Gender gender;
+
+  private String address;
+
+  @Pattern(regexp = "0([0-9]{9,10})")
+  private String phoneNumber;
 
   @NotBlank
   @Size(min = 6, max = 40)
@@ -54,6 +66,38 @@ public class SignUpForm {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public Date getBirthday() {
+    return birthday;
+  }
+
+  public void setBirthday(Date birthday) {
+    this.birthday = birthday;
+  }
+
+  public Gender getGender() {
+    return gender;
+  }
+
+  public void setGender(Gender gender) {
+    this.gender = gender;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
   }
 
   public void setPassword(String password) {
