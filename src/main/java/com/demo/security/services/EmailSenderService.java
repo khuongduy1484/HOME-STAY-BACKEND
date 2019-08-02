@@ -34,23 +34,24 @@ public class EmailSenderService {
     mailMessage.setTo(user.getEmail());
     mailMessage.setSubject("Complete Registration!");
     mailMessage.setFrom("khuongduy1484@gmail");
-      mailMessage.setText("To confirm your account, please click here : "
+    mailMessage.setText("To confirm your account, please click here : "
       + "http://localhost:8080/api/auth/confirm-account?token=" + confirmationToken.getConfirmationToken());
 
     sendEmail(mailMessage);
   }
-    public void sendEmailForgotPassword(User user) {
-        ConfirmationToken confirmationToken = new ConfirmationToken(user);
 
-        confirmationTokenRepository.save(confirmationToken);
+  public void sendEmailForgotPassword(User user) {
+    ConfirmationToken confirmationToken = new ConfirmationToken(user);
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setSubject("Complete Password Reset!");
-        mailMessage.setFrom("khuongduy1484@gmail");
-        mailMessage.setText("To complete the password reset process, please click here : "
-          + "http://localhost:8080/api/auth/confirm-reset?token=" + confirmationToken.getConfirmationToken());
+    confirmationTokenRepository.save(confirmationToken);
 
-        sendEmail(mailMessage);
-    }
+    SimpleMailMessage mailMessage = new SimpleMailMessage();
+    mailMessage.setTo(user.getEmail());
+    mailMessage.setSubject("Complete Password Reset!");
+    mailMessage.setFrom("khuongduy1484@gmail");
+    mailMessage.setText("To complete the password reset process, please click here : "
+      + "http://localhost:8080/api/auth/confirm-reset?token=" + confirmationToken.getConfirmationToken());
+
+    sendEmail(mailMessage);
+  }
 }

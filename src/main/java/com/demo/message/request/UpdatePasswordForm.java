@@ -1,7 +1,7 @@
 package com.demo.message.request;
 
 public class UpdatePasswordForm {
-  private String  newPassword;
+  private String newPassword;
   private String currentPassword;
 
   public String getNewPassword() {

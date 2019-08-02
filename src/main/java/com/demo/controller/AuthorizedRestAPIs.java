@@ -9,6 +9,7 @@ import com.demo.security.jwt.JwtAuthTokenFilter;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.MultipartFileService;
 import com.demo.security.services.UserDetailsServiceImpl;
+import com.demo.security.services.UserPrinciple;
 import com.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,7 +72,7 @@ public class AuthorizedRestAPIs {
     String jwt = authenticationJwtTokenFilter.getJwt(request);
     String userName = jwtProvider.getUserNameFromJwtToken(jwt);
     User user;
-    try{
+    try {
       user = userService.findByUsername(userName).orElseThrow(
         () -> new UsernameNotFoundException("User Not Found with -> username or email : " + userName));
     }
@@ -81,11 +82,26 @@ public class AuthorizedRestAPIs {
     if (updateInfoForm.getName() != null) {
       user.setName(updateInfoForm.getName());
     }
-
+    if (updateInfoForm.getBirthday() != null) {
+      user.setBirthday(updateInfoForm.getBirthday());
+    }
+    if (updateInfoForm.getGender() != null) {
+      user.setGender(updateInfoForm.getGender());
+    }
+    if (updateInfoForm.getAddress() != null) {
+      user.setAddress(updateInfoForm.getAddress());
+    }
+    if (updateInfoForm.getPhoneNumber() != null) {
+      if (isExistedByPhoneNumber(user, updateInfoForm.getPhoneNumber())) {
+        return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
+          HttpStatus.BAD_REQUEST);
+      }
+      user.setPhoneNumber(updateInfoForm.getPhoneNumber());
+    }
     if (updateInfoForm.getAvatar() != null) {
       String avatarFileName = updateInfoForm.getAvatar().getOriginalFilename();
       user.setAvatarFileName(avatarFileName);
-      String saveLocation = UPLOAD_LOCATION + user.getUsername() + "/avatar/";
+      String saveLocation = UPLOAD_LOCATION + user.getUsername() + "\\avatar\\";
       multipartFileService.saveMultipartFile(saveLocation, updateInfoForm.getAvatar(), avatarFileName);
     }
     User save = userService.save(user);
@@ -125,4 +141,10 @@ public class AuthorizedRestAPIs {
     return new ResponseEntity<>(new ResponseMessage("Password successfully reset"), HttpStatus.OK);
   }
 
+  private boolean isExistedByPhoneNumber(User user, String phoneNumber) {
+    UserPrinciple userPrinciple = UserPrinciple.build(user);
+    UserPrinciple userExistsByPhoneNumber = UserPrinciple.build(userService.findByPhoneNumber(phoneNumber));
+    return userService.existsByPhoneNumber(phoneNumber) && (!userPrinciple.equals(userExistsByPhoneNumber));
+  }
 }
+
