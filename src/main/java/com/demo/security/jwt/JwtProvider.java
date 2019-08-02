@@ -1,4 +1,5 @@
 package com.demo.security.jwt;
+
 import com.demo.security.services.UserPrinciple;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
@@ -27,7 +28,7 @@ public class JwtProvider {
     return Jwts.builder()
       .setSubject((userPrincipal.getUsername()))
       .setIssuedAt(new Date())
-      .setExpiration(new Date((new Date()).getTime() + jwtExpiration*1000))
+      .setExpiration(new Date((new Date()).getTime() + jwtExpiration * 1000))
       .signWith(SignatureAlgorithm.HS512, jwtSecret)
       .compact();
   }
@@ -36,15 +37,20 @@ public class JwtProvider {
     try {
       Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
       return true;
-    } catch (SignatureException e) {
+    }
+    catch (SignatureException e) {
       logger.error("Invalid JWT signature -> Message: {} ", e);
-    } catch (MalformedJwtException e) {
+    }
+    catch (MalformedJwtException e) {
       logger.error("Invalid JWT token -> Message: {}", e);
-    } catch (ExpiredJwtException e) {
+    }
+    catch (ExpiredJwtException e) {
       logger.error("Expired JWT token -> Message: {}", e);
-    } catch (UnsupportedJwtException e) {
+    }
+    catch (UnsupportedJwtException e) {
       logger.error("Unsupported JWT token -> Message: {}", e);
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e) {
       logger.error("JWT claims string is empty -> Message: {}", e);
     }
 

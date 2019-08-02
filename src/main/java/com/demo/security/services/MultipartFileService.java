@@ -15,7 +15,8 @@ public class MultipartFileService {
       byte[] bytes = multipartFile.getBytes();
       Path path = Paths.get(saveLocation + avatarFileName);
       Files.write(path, bytes);
-    } catch (IOException exception) {
+    }
+    catch (IOException exception) {
       exception.printStackTrace();
     }
   }

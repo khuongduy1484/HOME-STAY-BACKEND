@@ -32,7 +32,7 @@ public class UserPrinciple implements UserDetails {
   private String avatarFileName;
 
   public UserPrinciple(Long id, String name,
-                       String username, String email, String password,Boolean enabled,
+                       String username, String email, String password, Boolean enabled,
                        Collection<? extends GrantedAuthority> authorities, String avatarFileName) {
     this.id = id;
     this.name = name;
@@ -109,7 +109,7 @@ public class UserPrinciple implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return enabled ;
+    return enabled;
   }
 
   @Override

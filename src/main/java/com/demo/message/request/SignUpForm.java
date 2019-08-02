@@ -1,4 +1,5 @@
 package com.demo.message.request;
+
 import com.demo.model.Gender;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +24,7 @@ public class SignUpForm {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   @Past
   private Date birthday;
-  
+
   private Gender gender;
 
   private String address;

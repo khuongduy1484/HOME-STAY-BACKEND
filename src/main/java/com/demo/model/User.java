@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+
 import org.hibernate.annotations.NaturalId;
 
 @Entity
@@ -126,23 +127,41 @@ public class User {
     this.email = email;
   }
 
-  public Date getBirthday() { return birthday; }
+  public Date getBirthday() {
+    return birthday;
+  }
 
-  public void setBirthday(Date birthday) { this.birthday = birthday; }
+  public void setBirthday(Date birthday) {
+    this.birthday = birthday;
+  }
 
-  public Gender getGender() { return gender; }
+  public Gender getGender() {
+    return gender;
+  }
 
-  public void setGender(Gender gender) { this.gender = gender; }
+  public void setGender(Gender gender) {
+    this.gender = gender;
+  }
 
-  public String getAddress() { return address; }
+  public String getAddress() {
+    return address;
+  }
 
-  public void setAddress(String address) { this.address = address; }
+  public void setAddress(String address) {
+    this.address = address;
+  }
 
-  public String getPhoneNumber() { return phoneNumber; }
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
 
-  public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+  }
 
-  public String getPassword() { return password; }
+  public String getPassword() {
+    return password;
+  }
 
   public void setPassword(String password) {
     this.password = password;

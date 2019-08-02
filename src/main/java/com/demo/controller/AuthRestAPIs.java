@@ -76,8 +76,8 @@ public class AuthRestAPIs {
     String jwt = jwtProvider.generateJwtToken(authentication);
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     UserPrinciple userPrinciple = (UserPrinciple) userDetails;
-    String avatarLink =userPrinciple.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+userPrinciple.getAvatarFileName():"";
-    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
+    String avatarLink = userPrinciple.getAvatarFileName() != null ? "resources/images/" + userDetails.getUsername() + "/avatar/" + userPrinciple.getAvatarFileName() : "";
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(), avatarLink);
     return ResponseEntity.ok(jwtResponse);
   }
 
@@ -94,7 +94,7 @@ public class AuthRestAPIs {
         HttpStatus.BAD_REQUEST);
     }
 
-    if (userService.existsByPhoneNumber(signUpRequest.getPhoneNumber())){
+    if (userService.existsByPhoneNumber(signUpRequest.getPhoneNumber())) {
       return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
         HttpStatus.BAD_REQUEST);
     }
@@ -114,7 +114,7 @@ public class AuthRestAPIs {
     roles.add(userRole);
     user.setRoles(roles);
 
-    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"\\avatar\\";
+    String saveLocation = UPLOAD_LOCATION + user.getUsername() + "\\avatar\\";
     new File(saveLocation).mkdirs();
     multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
@@ -135,7 +135,8 @@ public class AuthRestAPIs {
       return new ResponseEntity<>(new ResponseMessage("User registered successfully!"),
         HttpStatus.OK);
 
-    } else {
+    }
+    else {
       return new ResponseEntity<>(new ResponseMessage("Fail -> DANG KI THAT BAI"),
         HttpStatus.BAD_REQUEST);
     }
@@ -178,13 +179,15 @@ public class AuthRestAPIs {
   }
 
   @PostMapping(value = "/reset-password")
-  public ResponseEntity<?>resetUserPassword( @RequestBody ResetPasswordForm resetPasswordForm){
-    if (resetPasswordForm.getGmail() !=null){
+  public ResponseEntity<?> resetUserPassword(@RequestBody ResetPasswordForm resetPasswordForm) {
+    if (resetPasswordForm.getGmail() != null) {
       User tokenUser = userService.findByEmailIgnoreCase(resetPasswordForm.getGmail());
       tokenUser.setPassword(encoder.encode(resetPasswordForm.getPassword()));
       userService.save(tokenUser);
-      return new ResponseEntity<>(new ResponseMessage("Password successfully reset. You can now log in with the new credentials"),HttpStatus.OK);
-    }else {
+      return new ResponseEntity<>(
+        new ResponseMessage("Password successfully reset. You can now log in with the new credentials"), HttpStatus.OK);
+    }
+    else {
       return new ResponseEntity<>(new ResponseMessage("The link is invalid or broken!"),
         HttpStatus.BAD_REQUEST);
     }
