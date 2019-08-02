@@ -59,6 +59,16 @@ public class User {
     joinColumns = @JoinColumn(name = "user_id"),
     inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
+  @OneToMany( fetch = FetchType.LAZY)
+  private Set<House> houses = new HashSet<>();
+
+  public Set<House> getHouses() {
+    return houses;
+  }
+
+  public void setHouses(Set<House> houses) {
+    this.houses = houses;
+  }
 
   private String avatarFileName;
 

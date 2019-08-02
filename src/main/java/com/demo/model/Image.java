@@ -3,13 +3,12 @@ package com.demo.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "house-images")
 public class Image {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private String fileName;
-  @ManyToOne()
+  @ManyToOne
   @JoinColumn(name = "house_id")
   private House house;
 

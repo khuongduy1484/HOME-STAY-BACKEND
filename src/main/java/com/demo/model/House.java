@@ -2,8 +2,10 @@ package com.demo.model;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.naming.Name;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -13,42 +15,38 @@ public class House {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   @NotBlank
-  @Size(min = 2,max = 50)
+  @Size(min = 2, max = 50)
   private String name;
+  @NotBlank
+  @Size(min = 2, max = 50)
   private String address;
-  @Column(name = "bed-rooms")
-  private String bedRooms;
-  @Column(name = "bathRooms")
-  private String bathRooms;
+  private Integer bedRooms;
+
+  private Integer bathRooms;
+  @NotBlank
+  @Size(min = 2, max = 50)
   private String describe;
-  @Column(name = "pricePerNight")
-  private String pricePerNight;
-  @Column(name = "living-rooms")
-  private String livingRoom;
+  private Integer pricePerNight;
 
-  public String getLivingRoom() {
-    return livingRoom;
-  }
+  @OneToMany(mappedBy = "house", fetch = FetchType.LAZY)
+  private Set<Image> listImages = new HashSet<>();
 
-  public void setLivingRoom(String livingRoom) {
-    this.livingRoom = livingRoom;
-  }
 
-  public String getKitchen() {
-    return kitchen;
-  }
 
-  public void setKitchen(String kitchen) {
-    this.kitchen = kitchen;
-  }
-
-  private String kitchen;
-  @OneToMany
-  private Set<Image> images;
   @ManyToOne
   @JoinColumn(name = "category_id")
   private Category category;
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private User owner;
 
+  public User getOwner() {
+    return owner;
+  }
+
+  public void setOwner(User owner) {
+    this.owner = owner;
+  }
 
   public House() {
   }
@@ -77,20 +75,37 @@ public class House {
     this.address = address;
   }
 
-  public String getBedRooms() {
+  public Integer getBedRooms() {
     return bedRooms;
   }
 
-  public void setBedRooms(String bedRooms) {
+  public void setBedRooms(Integer bedRooms) {
     this.bedRooms = bedRooms;
   }
 
-  public String getBathRooms() {
+  public Integer getBathRooms() {
     return bathRooms;
   }
 
-  public void setBathRooms(String bathRooms) {
+  public void setBathRooms(Integer bathRooms) {
     this.bathRooms = bathRooms;
+  }
+
+  public Integer getPricePerNight() {
+    return pricePerNight;
+  }
+
+  public void setPricePerNight(Integer pricePerNight) {
+    this.pricePerNight = pricePerNight;
+  }
+
+  public House(@NotBlank @Size(min = 2, max = 50) String name, @NotBlank @Size(min = 2, max = 50) String address, Integer bedRooms, Integer bathRooms, @NotBlank @Size(min = 2, max = 50) String describe, Integer pricePerNight) {
+    this.name = name;
+    this.address = address;
+    this.bedRooms = bedRooms;
+    this.bathRooms = bathRooms;
+    this.describe = describe;
+    this.pricePerNight = pricePerNight;
   }
 
   public String getDescribe() {
@@ -101,20 +116,13 @@ public class House {
     this.describe = describe;
   }
 
-  public String getPricePerNight() {
-    return pricePerNight;
+
+  public Set<Image> getListImages() {
+    return listImages;
   }
 
-  public void setPricePerNight(String pricePerNight) {
-    this.pricePerNight = pricePerNight;
-  }
-
-  public Set<Image> getImages() {
-    return images;
-  }
-
-  public void setImages(Set<Image> images) {
-    this.images = images;
+  public void setListImages(Set<Image> listImages) {
+    this.listImages = listImages;
   }
 
   public Category getCategory() {

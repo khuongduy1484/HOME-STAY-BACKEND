@@ -1,10 +1,15 @@
 package com.demo.controller;
 
+import com.demo.message.request.CreateHouseForm;
 import com.demo.message.request.UpdateInfoForm;
 import com.demo.message.request.UpdatePasswordForm;
 import com.demo.message.response.JwtResponse;
 import com.demo.message.response.ResponseMessage;
+import com.demo.model.House;
+import com.demo.model.Image;
 import com.demo.model.User;
+import com.demo.repository.HouseRepository;
+import com.demo.repository.ImageRespository;
 import com.demo.security.jwt.JwtAuthTokenFilter;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.MultipartFileService;
@@ -19,9 +24,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -42,6 +53,10 @@ public class AuthorizedRestAPIs {
   JwtProvider jwtProvider;
   @Autowired
   PasswordEncoder encoder;
+  @Autowired
+  HouseRepository houseRepository;
+  @Autowired
+  ImageRespository imageRespository;
 
 
   @Value("${upload.location}")
@@ -100,14 +115,14 @@ public class AuthorizedRestAPIs {
     if (updateInfoForm.getAvatar()!=null){
       String avatarFileName = updateInfoForm.getAvatar().getOriginalFilename();
       user.setAvatarFileName(avatarFileName);
-      String saveLocation = UPLOAD_LOCATION + user.getUsername() + "/avatar/";
+      String saveLocation = UPLOAD_LOCATION+user.getUsername()+"/avatar/";
       multipartFileService.saveMultipartFile(saveLocation, updateInfoForm.getAvatar(), avatarFileName);
     }
     User save = userService.save(user);
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-    String avatarLink = user.getAvatarFileName() != null ? "resources/images/" + userDetails.getUsername() + "/avatar/" + user.getAvatarFileName() : "";
-    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(), avatarLink);
+    String avatarLink =user.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+user.getAvatarFileName():"";
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
     return ResponseEntity.ok(jwtResponse);
   }
 
@@ -139,5 +154,6 @@ public class AuthorizedRestAPIs {
     }
     return new ResponseEntity<>(new ResponseMessage("Password successfully reset"), HttpStatus.OK);
   }
+
 
 }

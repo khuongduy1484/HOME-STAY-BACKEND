@@ -1,6 +1,12 @@
 package com.demo.model;
 
+import org.hibernate.annotations.NaturalId;
+import org.hibernate.validator.constraints.NotBlank;
+
 import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "category")
@@ -8,9 +14,20 @@ public class Category {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String name;
-  @OneToMany
-  private House house;
+  @Enumerated(EnumType.STRING)
+  @NaturalId
+  @Column(length = 60)
+  private CategoryName categoryName;
+  @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+  private Set<House> listHouse = new HashSet<>();
+
+  public Set<House> getListHouse() {
+    return listHouse;
+  }
+
+  public void setListHouse(Set<House> listHouse) {
+    this.listHouse = listHouse;
+  }
 
   public Category() {
   }
@@ -23,19 +40,11 @@ public class Category {
     this.id = id;
   }
 
-  public String getName() {
-    return name;
+  public CategoryName getCategoryName() {
+    return categoryName;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public House getHouse() {
-    return house;
-  }
-
-  public void setHouse(House house) {
-    this.house = house;
+  public void setCategoryName(CategoryName categoryName) {
+    this.categoryName = categoryName;
   }
 }
