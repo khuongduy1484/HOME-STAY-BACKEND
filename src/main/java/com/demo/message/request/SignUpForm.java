@@ -1,5 +1,6 @@
 package com.demo.message.request;
 import com.demo.model.Gender;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
@@ -19,9 +20,10 @@ public class SignUpForm {
   @Email
   private String email;
 
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   @Past
   private Date birthday;
-
+  
   private Gender gender;
 
   private String address;

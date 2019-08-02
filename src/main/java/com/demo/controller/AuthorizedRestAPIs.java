@@ -9,6 +9,7 @@ import com.demo.security.jwt.JwtAuthTokenFilter;
 import com.demo.security.jwt.JwtProvider;
 import com.demo.security.services.MultipartFileService;
 import com.demo.security.services.UserDetailsServiceImpl;
+import com.demo.security.services.UserPrinciple;
 import com.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +92,7 @@ public class AuthorizedRestAPIs {
       user.setAddress(updateInfoForm.getAddress());
     }
     if (updateInfoForm.getPhoneNumber()!=null){
-      if (userService.existsByPhoneNumber(updateInfoForm.getPhoneNumber())){
+      if (isExistedByPhoneNumber(user, updateInfoForm.getPhoneNumber())){
         return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
           HttpStatus.BAD_REQUEST);
       }
@@ -139,5 +140,10 @@ public class AuthorizedRestAPIs {
     }
     return new ResponseEntity<>(new ResponseMessage("Password successfully reset"), HttpStatus.OK);
   }
-
+   private boolean isExistedByPhoneNumber(User user, String phoneNumber){
+     UserPrinciple userPrinciple = UserPrinciple.build(user);
+     UserPrinciple userExistsByPhoneNumber = UserPrinciple.build(userService.findByPhoneNumber(phoneNumber));
+     return userService.existsByPhoneNumber(phoneNumber) && (!userPrinciple.equals(userExistsByPhoneNumber));
+   }
 }
+

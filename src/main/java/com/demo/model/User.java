@@ -42,6 +42,7 @@ public class User {
   @Past
   private Date birthday;
 
+  @Enumerated(EnumType.ORDINAL)
   private Gender gender;
 
   private String address;

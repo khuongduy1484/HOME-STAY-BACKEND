@@ -1,7 +1,7 @@
 package com.demo.message.request;
 
 import com.demo.model.Gender;
-import org.hibernate.validator.constraints.UniqueElements;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Past;
@@ -13,6 +13,7 @@ public class UpdateInfoForm {
   @Size(min = 3, max = 50)
   private String name;
 
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   @Past
   private Date birthday;
 
