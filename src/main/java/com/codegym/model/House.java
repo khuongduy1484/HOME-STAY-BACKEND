@@ -13,8 +13,10 @@ public class House {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   @NotBlank
   @Size(min = 2, max = 50)
+  @Column(unique = true)
   private String name;
   @NotBlank
   @Size(min = 2, max = 50)
@@ -31,14 +33,14 @@ public class House {
   private Set<Image> listImages;
 
   @Enumerated(EnumType.STRING)
-  private HouseStatus houseStatus;
+  private HouseStatus status;
 
   public HouseStatus getHouseStatus() {
-    return houseStatus;
+    return status;
   }
 
-  public void setHouseStatus(HouseStatus houseStatus) {
-    this.houseStatus = houseStatus;
+  public void setHouseStatus(HouseStatus status) {
+    this.status = status;
   }
 
   @ManyToOne
@@ -114,6 +116,7 @@ public class House {
     this.bathRooms = bathRooms;
     this.describe = describe;
     this.pricePerNight = pricePerNight;
+    this.status = HouseStatus.AVAILABLE;
   }
 
   public String getDescribe() {

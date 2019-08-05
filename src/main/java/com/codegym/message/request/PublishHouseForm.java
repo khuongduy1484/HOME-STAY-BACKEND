@@ -1,13 +1,13 @@
 package com.codegym.message.request;
 
-import com.codegym.model.Category;
+
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Size;
-import java.util.Set;
 
-public class CreateHouseForm {
+
+public class PublishHouseForm {
   @NotBlank
   @Size(min = 2, max = 50)
   private String name;
