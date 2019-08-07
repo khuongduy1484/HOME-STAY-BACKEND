@@ -4,7 +4,6 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,14 +18,16 @@ public class House {
   @Column(unique = true)
   private String name;
   @NotBlank
-  @Size(min = 2, max = 50)
+  @Size(min = 2)
   private String address;
   private Integer bedRooms;
 
   private Integer bathRooms;
+
   @NotBlank
   @Size(min = 2, max = 50)
-  private String describe;
+  private String description;
+
   private Integer pricePerNight;
 
   @OneToMany(targetEntity = House.class)
@@ -35,17 +36,10 @@ public class House {
   @Enumerated(EnumType.STRING)
   private HouseStatus status;
 
-  public HouseStatus getHouseStatus() {
-    return status;
-  }
-
-  public void setHouseStatus(HouseStatus status) {
-    this.status = status;
-  }
-
   @ManyToOne
   @JoinColumn(name = "category_id")
   private Category category;
+  
   @ManyToOne
   @JoinColumn(name = "user_id")
   private User owner;
@@ -109,22 +103,22 @@ public class House {
     this.pricePerNight = pricePerNight;
   }
 
-  public House(@NotBlank @Size(min = 2, max = 50) String name, @NotBlank @Size(min = 2, max = 50) String address, Integer bedRooms, Integer bathRooms, @NotBlank @Size(min = 2, max = 50) String describe, Integer pricePerNight) {
+  public House(@NotBlank @Size(min = 2, max = 50) String name, @NotBlank @Size(min = 2, max = 50) String address, Integer bedRooms, Integer bathRooms, @NotBlank @Size(min = 2, max = 50) String description, Integer pricePerNight) {
     this.name = name;
     this.address = address;
     this.bedRooms = bedRooms;
     this.bathRooms = bathRooms;
-    this.describe = describe;
+    this.description = description;
     this.pricePerNight = pricePerNight;
     this.status = HouseStatus.AVAILABLE;
   }
 
-  public String getDescribe() {
-    return describe;
+  public String getDescription() {
+    return description;
   }
 
-  public void setDescribe(String describe) {
-    this.describe = describe;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
 

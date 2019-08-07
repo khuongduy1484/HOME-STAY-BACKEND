@@ -6,6 +6,8 @@ import com.codegym.service.HouseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class HouseServiceImpl implements HouseService {
   @Autowired
@@ -31,5 +33,5 @@ public class HouseServiceImpl implements HouseService {
     return houseRepository.findByName(name);
   }
 
-
+  public List<House> findAll(){ return houseRepository.findAll();}
 }

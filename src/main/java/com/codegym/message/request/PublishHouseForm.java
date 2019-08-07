@@ -11,16 +11,23 @@ public class PublishHouseForm {
   @NotBlank
   @Size(min = 2, max = 50)
   private String name;
+
   @NotBlank
-  @Size(min = 2, max = 50)
+  @Size(min = 2)
   private String address;
+
   private Integer bedRooms;
+
   private Integer bathRooms;
+
   @NotBlank
   @Size(min = 2, max = 50)
   private String description;
+
   private Integer pricePerNight;
+
   private String category;
+
   private MultipartFile[] images;
 
   public String getCategory() {
@@ -54,7 +61,6 @@ public class PublishHouseForm {
   public void setAddress(String address) {
     this.address = address;
   }
-
 
   public String getDescription() {
     return description;

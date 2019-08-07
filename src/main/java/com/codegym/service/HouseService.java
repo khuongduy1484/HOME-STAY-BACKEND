@@ -2,6 +2,8 @@ package com.codegym.service;
 
 import com.codegym.model.House;
 
+import java.util.List;
+
 public interface HouseService {
   House save(House house);
 
@@ -10,4 +12,5 @@ public interface HouseService {
   Boolean existsByHouseName(String houseName);
 
   House findByName(String name);
+  public List<House> findAll();
 }

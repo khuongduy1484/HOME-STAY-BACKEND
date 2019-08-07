@@ -36,7 +36,7 @@ public class MultipartFileService {
       houseImages.add(image);
       image.setHouse(house);
       imageService.save(image);
-      String houseImageLocation = saveDirectory +"/" + userName + "/" + house +"/" ;
+      String houseImageLocation = saveDirectory +"/" + userName + "/" + house.getName() +"/" ;
       new File(houseImageLocation).mkdir();
       saveMultipartFile(houseImageLocation, photo, imageFileName);
     }
