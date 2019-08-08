@@ -138,4 +138,11 @@ public class House {
     this.category = category;
   }
 
+  public HouseStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HouseStatus status) {
+    this.status = status;
+  }
 }

@@ -1,9 +1,11 @@
 package com.codegym.controller;
 
 import com.codegym.message.request.PublishHouseForm;
-import com.codegym.message.response.HouseInfo;
 import com.codegym.message.response.ResponseMessage;
-import com.codegym.model.*;
+import com.codegym.model.Category;
+import com.codegym.model.House;
+import com.codegym.model.Image;
+import com.codegym.model.User;
 import com.codegym.security.jwt.JwtAuthTokenFilter;
 import com.codegym.security.jwt.JwtProvider;
 import com.codegym.security.services.MultipartFileService;
@@ -23,15 +25,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/houses")
-public class HouseController {
+@RequestMapping("/api/owner")
+public class OwnerController {
   @Autowired
   UserService userService;
 
@@ -57,7 +57,7 @@ public class HouseController {
   @Value("${upload.location}")
   private String UPLOAD_LOCATION;
 
-  @PostMapping(consumes = "multipart/form-data")
+  @PostMapping(value = "/houses", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('USER') or hasRole('PM') or hasRole('ADMIN')")
   public ResponseEntity<?> createHouse(@ModelAttribute PublishHouseForm publishHouseForm, HttpServletRequest request) {
     String jwt = authenticationJwtTokenFilter.getJwt(request);
@@ -85,42 +85,4 @@ public class HouseController {
     return new ResponseEntity<>(new ResponseMessage("Publish House successfully"), HttpStatus.OK);
   }
 
-  @GetMapping
-  public ResponseEntity<List<HouseInfo>> getAllHouse() {
-    List<House> houses = houseService.findAll();
-    List<HouseInfo> housesInfo = new ArrayList<HouseInfo>();
-    houses.forEach(house -> housesInfo.add(convertHouseToHouseInfo(house)));
-    return new ResponseEntity<List<HouseInfo>>(housesInfo,HttpStatus.OK);
-  }
-
-  private HouseInfo convertHouseToHouseInfo(House house) {
-    HouseInfo houseInfo = new HouseInfo();
-    houseInfo.setName(house.getName());
-    houseInfo.setAddress(house.getAddress());
-    houseInfo.setBathRooms(house.getBathRooms());
-    houseInfo.setBedRooms(house.getBedRooms());
-    houseInfo.setCategory(house.getCategory().getCategoryName());
-    houseInfo.setPricePerNight(house.getPricePerNight());
-    houseInfo.setDescription(house.getDescription());
-    User owner = house.getOwner();
-    List<Image> images = imageService.findAllByHouse(house);
-    List<String> imageFileName = new ArrayList<String>();
-    images.forEach(image -> imageFileName.add(image.getFileName()));
-    List<String> imagesSrc = new ArrayList<String>();
-    imageFileName.forEach(fileName ->imagesSrc.add(findImageSrc(owner,house,fileName)));
-    houseInfo.setImagesSrc(imagesSrc.toArray(new String[0]));
-    return houseInfo;
-  }
-
-  private String findImageSrc(User owner, House house, String fileName) {
-    String userName = owner.getUsername();
-    String houseName = house.getName();
-    return "resources/images/" + userName + "/" + houseName + "/" + fileName;
-  }
 }
-
-
-
-
-
-
