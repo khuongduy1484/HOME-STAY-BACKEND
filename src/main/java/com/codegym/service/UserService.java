@@ -2,6 +2,7 @@ package com.codegym.service;
 
 import com.codegym.model.User;
 
+import javax.jws.soap.SOAPBinding;
 import java.util.Optional;
 
 public interface UserService {
@@ -18,4 +19,8 @@ public interface UserService {
   User findByEmailIgnoreCase(String email);
 
   User save(User user);
+
+  User findById(Long id);
+
+  User getUserByAuth();
 }
