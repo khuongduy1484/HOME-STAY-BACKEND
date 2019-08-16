@@ -12,8 +12,10 @@ import com.codegym.service.UserService;
 import com.codegym.service.impl.CategoryServiceImpl;
 import com.codegym.service.impl.HouseServiceImpl;
 import com.codegym.service.impl.ImageServiceImpl;
+import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -57,9 +61,19 @@ public class GuestController {
   @Value("${upload.location}")
   private String UPLOAD_LOCATION;
 
+  @GetMapping("/houses/search")
+  public ResponseEntity<List<HouseInfo>> searchHouses(@QuerydslPredicate(root = House.class) Predicate predicate){
+    Iterable<House> iterable  = houseService.findAll(predicate);
+    List<HouseInfo> housesInfo = new ArrayList<HouseInfo>();
+    List<House> houses = StreamSupport.stream(iterable.spliterator(), false)
+      .collect(Collectors.toList());
+    houses .forEach(house -> housesInfo.add(convertHouseToHouseInfo(house)));
+    return new ResponseEntity<List<HouseInfo>>(housesInfo, HttpStatus.OK);
+  }
+
   @GetMapping("/houses")
   public ResponseEntity<List<HouseInfo>> getAllHouse() {
-    List<House> houses = houseService.findAll();
+    Iterable<House> houses = houseService.findAll();
     List<HouseInfo> housesInfo = new ArrayList<HouseInfo>();
     houses.forEach(house -> housesInfo.add(convertHouseToHouseInfo(house)));
     return new ResponseEntity<List<HouseInfo>>(housesInfo, HttpStatus.OK);

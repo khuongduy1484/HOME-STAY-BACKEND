@@ -3,6 +3,7 @@ package com.codegym.service.impl;
 import com.codegym.model.House;
 import com.codegym.repository.HouseRepository;
 import com.codegym.service.HouseService;
+import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,4 +35,24 @@ public class HouseServiceImpl implements HouseService {
   }
 
   public List<House> findAll(){ return houseRepository.findAll();}
+
+  @Override
+  public Iterable<House> findAll(Predicate predicate) {
+    return houseRepository.findAll(predicate);
+  }
+
+  @Override
+  public List<House> findAllByBathRooms(Integer bathRooms) {
+    return houseRepository.findAllByBathRooms(bathRooms);
+  }
+
+  @Override
+  public List<House> findAllByBedRooms(Integer bedRooms) {
+    return houseRepository.findAllByBedRooms(bedRooms);
+  }
+
+  @Override
+  public List<House> findAllByPricePerNightBetween(Integer minPrice, Integer maxPrice) {
+    return houseRepository.findAllByPricePerNightBetween(minPrice, maxPrice);
+  }
 }
