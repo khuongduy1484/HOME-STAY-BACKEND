@@ -18,34 +18,40 @@ public class House {
   @Column(unique = true)
   private String name;
   @NotBlank
-  @Size(min = 2, max = 50)
+  @Size(min = 2)
   private String address;
   private Integer bedRooms;
 
   private Integer bathRooms;
+
   @NotBlank
-  @Size(min = 2, max = 50)
+  @Size(min = 2)
+  @Column(length = 2000)
   private String description;
+
   private Integer pricePerNight;
 
   @OneToMany(targetEntity = House.class)
   private Set<Image> listImages;
 
-  private Boolean isRented;
+  @Enumerated(EnumType.STRING)
+  private HouseStatus status;
 
+  private Boolean isRented;
 
   @ManyToOne
   @JoinColumn(name = "category_id")
   private Category category;
+
   @ManyToOne
   @JoinColumn(name = "user_id")
   private User owner;
 
-  public Boolean getRented() {
+  public Boolean getIsRented() {
     return isRented;
   }
 
-  public void setRented(Boolean rented) {
+  public void setIsRented(Boolean rented) {
     isRented = rented;
   }
 
@@ -115,6 +121,7 @@ public class House {
     this.bathRooms = bathRooms;
     this.description = description;
     this.pricePerNight = pricePerNight;
+    this.status = HouseStatus.AVAILABLE;
   }
 
   public String getDescription() {
@@ -142,4 +149,11 @@ public class House {
     this.category = category;
   }
 
+  public HouseStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HouseStatus status) {
+    this.status = status;
+  }
 }

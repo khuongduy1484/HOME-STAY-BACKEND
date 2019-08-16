@@ -3,7 +3,10 @@ package com.codegym.controller;
 import com.codegym.message.request.PublishHouseForm;
 import com.codegym.message.request.UpdateInfoHouseForm;
 import com.codegym.message.response.ResponseMessage;
-import com.codegym.model.*;
+import com.codegym.model.Category;
+import com.codegym.model.House;
+import com.codegym.model.Image;
+import com.codegym.model.User;
 import com.codegym.security.jwt.JwtAuthTokenFilter;
 import com.codegym.security.jwt.JwtProvider;
 import com.codegym.security.services.MultipartFileService;
@@ -29,8 +32,8 @@ import java.util.Set;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/houses")
-public class HouseController {
+@RequestMapping("/api/owner")
+public class OwnerController {
   @Autowired
   UserService userService;
 
@@ -65,12 +68,12 @@ public class HouseController {
     house.setOwner(user);
     Category categoryName = categoryService.findByCategoryName(publishHouseForm.getCategory());
     house.setCategory(categoryName);
-    house.setRented(false);
+    house.setIsRented(false);
     houseService.save(house);
     House houseName = houseService.findByName(publishHouseForm.getName());
     MultipartFile[] gallery = publishHouseForm.getImages();
     Set<Image> houseImages = new HashSet<>();
-    multipartFileService.saveGallery(user.getUsername(), houseName, gallery, houseImages, UPLOAD_LOCATION_HOUSE_IMAGE);
+    multipartFileService.saveGallery(user.getUsername(), house, gallery, houseImages, UPLOAD_LOCATION_HOUSE_IMAGE);
 
     return new ResponseEntity<>(new ResponseMessage("Publish House successfully"), HttpStatus.OK);
   }
@@ -95,8 +98,8 @@ public class HouseController {
     return new ResponseEntity<List<House>>(houses, HttpStatus.OK);
   }
 
-  @GetMapping("{id}")
-  public ResponseEntity<?> getHouse(@PathVariable("id") Long id) {
+  @GetMapping("/{id}")
+  public ResponseEntity<House> getHouse(@PathVariable("id") Long id) {
     House house = houseService.findById(id).orElseThrow(
       () -> new UsernameNotFoundException("House is not found : " ));
     return new ResponseEntity<House>(house,HttpStatus.OK);
@@ -106,7 +109,7 @@ public class HouseController {
   public ResponseEntity<?> deleteHouse(@PathVariable("id") Long id) {
     House house = houseService.findById(id).orElseThrow(
       () -> new UsernameNotFoundException("House is not found : " ));
-    if (house.getRented()) {
+    if (house.getIsRented()) {
       return new ResponseEntity<>(new ResponseMessage("cannot delete house"), HttpStatus.BAD_REQUEST);
     }
     houseService.removeHouse(id);
@@ -115,14 +118,14 @@ public class HouseController {
 
   @PutMapping(value = "/{id}",consumes = "multipart/form-data")
   public ResponseEntity<?> editHouse(@PathVariable("id") Long id, @ModelAttribute UpdateInfoHouseForm updateInfoHouseForm) {
-   User user = userService.getUserByAuth();
+    User user = userService.getUserByAuth();
     House house = houseService.findById(id).orElseThrow(
       () -> new UsernameNotFoundException("House is not found : " ));
     house.setName(updateInfoHouseForm.getName());
     house.setAddress(updateInfoHouseForm.getAddress());
     house.setBedRooms(updateInfoHouseForm.getBedRooms());
     house.setBathRooms(updateInfoHouseForm.getBathRooms());
-    house.setRented(updateInfoHouseForm.getIsRented());
+    house.setIsRented(updateInfoHouseForm.getIsRented());
     Category category = categoryService.findByCategoryName(updateInfoHouseForm.getCategory());
     house.setCategory(category);
     house.setDescription(updateInfoHouseForm.getDescription());
@@ -133,11 +136,4 @@ public class HouseController {
     houseService.save(house);
     return new ResponseEntity<>(new ResponseMessage("Update House successfully"), HttpStatus.OK);
   }
-
 }
-
-
-
-
-
-

@@ -1,13 +1,15 @@
-package com.codegym.message.request;
+package com.codegym.message.response;
 
-
+import com.codegym.model.HouseStatus;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import javax.validation.constraints.Size;
 
+public class HouseInfo {
 
-public class PublishHouseForm {
+  private Long id;
+
   @NotBlank
   @Size(min = 2, max = 50)
   private String name;
@@ -26,9 +28,29 @@ public class PublishHouseForm {
 
   private Integer pricePerNight;
 
+  private Boolean isRented;
+
+  public Boolean getIsRented() {
+    return isRented;
+  }
+
+  public void setIsRented(Boolean rented) {
+    isRented = rented;
+  }
+
   private String category;
 
-  private MultipartFile[] images;
+  private String[] imagesSrc;
+
+  private HouseStatus status;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public String getCategory() {
     return category;
@@ -38,12 +60,12 @@ public class PublishHouseForm {
     this.category = category;
   }
 
-  public MultipartFile[] getImages() {
-    return images;
+  public String[] getImagesSrc() {
+    return imagesSrc;
   }
 
-  public void setImages(MultipartFile[] images) {
-    this.images = images;
+  public void setImagesSrc(String[] imagesSrc) {
+    this.imagesSrc = imagesSrc;
   }
 
   public String getName() {
@@ -94,5 +116,11 @@ public class PublishHouseForm {
     this.pricePerNight = pricePerNight;
   }
 
+  public HouseStatus getStatus() {
+    return status;
+  }
 
+  public void setStatus(HouseStatus status) {
+    this.status = status;
+  }
 }

@@ -1,5 +1,6 @@
 package com.codegym.service.impl;
 
+import com.codegym.model.House;
 import com.codegym.model.User;
 import com.codegym.repository.UserRepository;
 import com.codegym.security.services.UserPrinciple;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
