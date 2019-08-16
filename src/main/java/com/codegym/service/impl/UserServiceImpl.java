@@ -3,8 +3,10 @@ package com.codegym.service.impl;
 import com.codegym.model.House;
 import com.codegym.model.User;
 import com.codegym.repository.UserRepository;
+import com.codegym.security.services.UserPrinciple;
 import com.codegym.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,5 +56,16 @@ public class UserServiceImpl implements UserService {
   public List<User> findUsersByHouses(House houses){
     return userRepository.findUsersByHouses(houses);
   }
+
+  @Override
+  public User findById(Long id) {
+    return userRepository.findById(id).get();
+  }
+
+  @Override
+  public User getUserByAuth() {
+      Object userPrinciple = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Long user_id = ((UserPrinciple) userPrinciple).getId();
+    return findById(user_id);  }
 
 }

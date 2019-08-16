@@ -1,34 +1,31 @@
 package com.codegym.controller;
 
-import com.codegym.message.request.PublishHouseForm;
 import com.codegym.message.response.HouseInfo;
-import com.codegym.message.response.ResponseMessage;
 import com.codegym.model.*;
 import com.codegym.security.jwt.JwtAuthTokenFilter;
 import com.codegym.security.jwt.JwtProvider;
 import com.codegym.security.services.MultipartFileService;
 import com.codegym.security.services.UserDetailsServiceImpl;
+import com.codegym.service.CategoryService;
+import com.codegym.service.HouseService;
+import com.codegym.service.ImageService;
 import com.codegym.service.UserService;
-import com.codegym.service.impl.CategoryServiceImpl;
-import com.codegym.service.impl.HouseServiceImpl;
-import com.codegym.service.impl.ImageServiceImpl;
 import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+
 import java.util.ArrayList;
-import java.util.HashSet;
+
 import java.util.List;
-import java.util.Set;
+
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -52,11 +49,11 @@ public class GuestController {
   @Autowired
   PasswordEncoder encoder;
   @Autowired
-  HouseServiceImpl houseService;
+  HouseService houseService;
   @Autowired
-  ImageServiceImpl imageService;
+  ImageService imageService;
   @Autowired
-  CategoryServiceImpl categoryService;
+  CategoryService categoryService;
 
   @Value("${upload.location}")
   private String UPLOAD_LOCATION;
@@ -73,7 +70,7 @@ public class GuestController {
 
   @GetMapping("/houses")
   public ResponseEntity<List<HouseInfo>> getAllHouse() {
-    Iterable<House> houses = houseService.findAll();
+    List<House> houses = houseService.findAll();
     List<HouseInfo> housesInfo = new ArrayList<HouseInfo>();
     houses.forEach(house -> housesInfo.add(convertHouseToHouseInfo(house)));
     return new ResponseEntity<List<HouseInfo>>(housesInfo, HttpStatus.OK);
@@ -81,7 +78,8 @@ public class GuestController {
 
   @GetMapping("houses/{id}")
   public ResponseEntity<HouseInfo> getHouseDetail(@PathVariable Long id) {
-    HouseInfo houseInfo = convertHouseToHouseInfo(houseService.findById(id));
+    HouseInfo houseInfo = convertHouseToHouseInfo(houseService.findById(id).orElseThrow(
+      () -> new UsernameNotFoundException("House is not found : " )));
     return new ResponseEntity<HouseInfo>(houseInfo, HttpStatus.OK);
   }
 
@@ -92,9 +90,12 @@ public class GuestController {
     houseInfo.setAddress(house.getAddress());
     houseInfo.setBathRooms(house.getBathRooms());
     houseInfo.setBedRooms(house.getBedRooms());
-    houseInfo.setCategory(house.getCategory().getCategoryName());
     houseInfo.setPricePerNight(house.getPricePerNight());
     houseInfo.setDescription(house.getDescription());
+    houseInfo.setCategory(house.getCategory().getName());
+    houseInfo.setPricePerNight(house.getPricePerNight());
+    houseInfo.setDescription(house.getDescription());
+    houseInfo.setIsRented(house.getIsRented());
     User owner = house.getOwner();
     List<Image> images = imageService.findAllByHouse(house);
     List<String> imageFileName = new ArrayList<String>();

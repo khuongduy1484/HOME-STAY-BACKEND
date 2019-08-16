@@ -2,6 +2,7 @@ package com.codegym.repository;
 
 import com.codegym.model.House;
 import com.codegym.model.QHouse;
+import com.codegym.model.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -22,9 +23,11 @@ import java.util.List;
 @Repository
 public interface HouseRepository extends JpaRepository<House, Long>, QuerydslPredicateExecutor<House>, QuerydslBinderCustomizer<QHouse> {
   Boolean existsByName(String name);
+
   House findByName(String name);
   List<House> findAllByBathRooms(Integer bathRooms);
   List<House> findAllByBedRooms(Integer bedRooms);
+  List<House> findAllByOwner(User user);
   List<House> findAllByPricePerNightBetween(Integer minPrice, Integer maxPrice);
   @Override
   default void customize(QuerydslBindings bindings, QHouse root) {

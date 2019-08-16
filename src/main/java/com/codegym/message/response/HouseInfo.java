@@ -5,7 +5,6 @@ import org.hibernate.validator.constraints.NotBlank;
 
 
 import javax.validation.constraints.Size;
-import java.util.List;
 
 public class HouseInfo {
 
@@ -28,6 +27,16 @@ public class HouseInfo {
   private String description;
 
   private Integer pricePerNight;
+
+  private Boolean isRented;
+
+  public Boolean getIsRented() {
+    return isRented;
+  }
+
+  public void setIsRented(Boolean rented) {
+    isRented = rented;
+  }
 
   private String category;
 
@@ -114,4 +123,8 @@ public class HouseInfo {
   public void setStatus(HouseStatus status) {
     this.status = status;
   }
+
 }
+
+
+

@@ -2,7 +2,7 @@ package com.codegym.service;
 
 import com.codegym.model.House;
 import com.codegym.model.User;
-
+import javax.jws.soap.SOAPBinding;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +21,8 @@ public interface UserService {
 
   User save(User user);
   List<User> findUsersByHouses(House houses);
+
+  User findById(Long id);
+
+  User getUserByAuth();
 }

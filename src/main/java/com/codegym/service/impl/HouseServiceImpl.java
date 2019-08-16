@@ -1,6 +1,7 @@
 package com.codegym.service.impl;
 
 import com.codegym.model.House;
+import com.codegym.model.User;
 import com.codegym.repository.HouseRepository;
 import com.codegym.service.HouseService;
 import com.querydsl.core.types.Predicate;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HouseServiceImpl implements HouseService {
@@ -20,8 +22,8 @@ public class HouseServiceImpl implements HouseService {
   }
 
   @Override
-  public House findById(Long id) {
-    return houseRepository.findById(id).get();
+  public Optional<House> findById(Long id) {
+    return houseRepository.findById(id);
   }
 
   @Override
@@ -55,4 +57,15 @@ public class HouseServiceImpl implements HouseService {
   public List<House> findAllByPricePerNightBetween(Integer minPrice, Integer maxPrice) {
     return houseRepository.findAllByPricePerNightBetween(minPrice, maxPrice);
   }
+
+  @Override
+  public List<House> findAllByUser(User user) {
+    return houseRepository.findAllByOwner(user);
+  }
+
+  @Override
+  public void removeHouse(Long id) {
+    houseRepository.deleteById(id);
+  }
+
 }

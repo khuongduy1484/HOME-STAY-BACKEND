@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "user-booked_house")
+@Table(name = "user_booked_house")
 public class UserBookedHouse {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +57,14 @@ public class UserBookedHouse {
 
   public void setHouse(House house) {
     this.house = house;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public Date getBookDate() {
