@@ -1,6 +1,5 @@
 package com.codegym.controller;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,12 +14,10 @@ import com.codegym.model.*;
 import com.codegym.repository.ConfirmationTokenRepository;
 import com.codegym.security.jwt.JwtProvider;
 import com.codegym.security.services.EmailSenderService;
-import com.codegym.security.services.MultipartFileService;
 import com.codegym.security.services.UserPrinciple;
 import com.codegym.service.RoleService;
 import com.codegym.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -43,9 +40,6 @@ public class AuthRestAPIs {
   private EmailSenderService emailSenderService;
 
   @Autowired
-  private MultipartFileService multipartFileService;
-
-  @Autowired
   AuthenticationManager authenticationManager;
 
   @Autowired
@@ -59,8 +53,6 @@ public class AuthRestAPIs {
 
   @Autowired
   JwtProvider jwtProvider;
-  @Value("${upload.location}")
-  private String UPLOAD_LOCATION;
 
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
@@ -72,9 +64,7 @@ public class AuthRestAPIs {
 
     String jwt = jwtProvider.generateJwtToken(authentication);
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-    UserPrinciple userPrinciple = (UserPrinciple) userDetails;
-    String avatarLink =userPrinciple.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+userPrinciple.getAvatarFileName():"";
-    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
+    JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), userDetails.getAuthorities(),((UserPrinciple) userDetails).getAvatarUrl());
     return ResponseEntity.ok(jwtResponse);
   }
 
@@ -100,20 +90,14 @@ public class AuthRestAPIs {
 
     User user = new User(signUpRequest.getName(), signUpRequest.getUsername(), signUpRequest.getEmail(),
       signUpRequest.getBirthday(), signUpRequest.getGender(), signUpRequest.getAddress(),
-      signUpRequest.getPhoneNumber(), encoder.encode(signUpRequest.getPassword()));
+      signUpRequest.getPhoneNumber(), encoder.encode(signUpRequest.getPassword()), signUpRequest.getAvatarUrl());
     user.setEnabled(false);
-    String avatarFileName = signUpRequest.getAvatar().getOriginalFilename();
-    user.setAvatarFileName(avatarFileName);
 
     Set<Role> roles = new HashSet<>();
     Role userRole = roleService.findByName(RoleName.ROLE_USER)
       .orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
     roles.add(userRole);
     user.setRoles(roles);
-
-    String saveLocation = UPLOAD_LOCATION+user.getUsername()+"/avatar/";
-    new File(saveLocation).mkdirs();
-    multipartFileService.saveMultipartFile(saveLocation, signUpRequest.getAvatar(), avatarFileName);
 
     userService.save(user);
     emailSenderService.sendEmailCreateUser(user);

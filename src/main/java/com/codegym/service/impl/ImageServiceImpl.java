@@ -7,6 +7,7 @@ import com.codegym.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service
@@ -22,5 +23,10 @@ public class ImageServiceImpl implements ImageService {
   @Override
   public List<Image> findAllByHouse(House house) {
     return imageRespository.findAllByHouse(house);
+  }
+
+  @Override
+  public Image findByImageUrl(String imageUrl) throws EntityNotFoundException {
+    return imageRespository.findByImageUrl(imageUrl).orElseThrow(EntityNotFoundException::new);
   }
 }

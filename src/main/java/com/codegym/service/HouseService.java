@@ -4,13 +4,14 @@ import com.codegym.model.House;
 import com.codegym.model.User;
 import com.querydsl.core.types.Predicate;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
 public interface HouseService {
   House save(House house);
 
-  Optional<House> findById(Long id);
+  House findById(Long id) throws EntityNotFoundException;
 
   Boolean existsByHouseName(String houseName);
 

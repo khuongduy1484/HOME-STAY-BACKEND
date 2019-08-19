@@ -73,7 +73,7 @@ public class User {
     this.houses = houses;
   }
 
-  private String avatarFileName;
+  private String avatarUrl;
 
   public boolean isEnabled() {
     return enabled;
@@ -86,7 +86,7 @@ public class User {
   public User() {
   }
 
-  public User(@NotBlank @Size(min = 3, max = 50) String name, @NotBlank @Size(min = 3, max = 50) String username, @NotBlank @Size(max = 50) @Email String email, Date birthday, Gender gender, String address, String phoneNumber, @NotBlank @Size(min = 6, max = 100) String password) {
+  public User(@NotBlank @Size(min = 3, max = 50) String name, @NotBlank @Size(min = 3, max = 50) String username, @NotBlank @Size(max = 50) @Email String email, Date birthday, Gender gender, String address, String phoneNumber, @NotBlank @Size(min = 6, max = 100) String password, String avatarUrl) {
     this.name = name;
     this.username = username;
     this.email = email;
@@ -95,6 +95,7 @@ public class User {
     this.address = address;
     this.phoneNumber = phoneNumber;
     this.password = password;
+    this.avatarUrl = avatarUrl;
   }
 
   public Long getId() {
@@ -106,12 +107,12 @@ public class User {
   }
 
 
-  public String getAvatarFileName() {
-    return avatarFileName;
+  public String getAvatarUrl() {
+    return avatarUrl;
   }
 
-  public void setAvatarFileName(String avatarFileName) {
-    this.avatarFileName = avatarFileName;
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 
   public String getUsername() {

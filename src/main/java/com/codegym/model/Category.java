@@ -1,7 +1,5 @@
 package com.codegym.model;
 
-import org.hibernate.annotations.NaturalId;
-
 import javax.persistence.*;
 import java.util.Set;
 
@@ -11,20 +9,24 @@ public class Category {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
+  @Column(unique = true)
   private String name;
   @OneToMany(targetEntity = House.class)
-  private Set<House> listHouse;
+  private Set<House> houses;
 
-  public Set<House> getListHouse() {
-    return listHouse;
+  public Set<House> getHouses() {
+    return houses;
   }
 
-  public void setListHouse(Set<House> listHouse) {
-    this.listHouse = listHouse;
+  public void setHouses(Set<House> houses) {
+    this.houses = houses;
   }
 
   public Category() {
+  }
+
+  public Category(String name) {
+    this.name = name;
   }
 
   public Long getId() {

@@ -13,11 +13,10 @@ import com.codegym.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -39,26 +38,29 @@ public class UserBookedHouseController {
   @PostMapping("/{id}")
   public ResponseEntity<?> bookHouse(@Valid @RequestBody BookHouseForm userBookedHouse,
                                      @PathVariable("id") Long id) {
-    Date nowDate = new Date();
-    Boolean after = userBookedHouse.getCheckOut().after(userBookedHouse.getCheckIn());
-    Boolean before = nowDate.before(userBookedHouse.getCheckIn());
+    try{
+      Date nowDate = new Date();
+      Boolean after = userBookedHouse.getCheckOut().after(userBookedHouse.getCheckIn());
+      Boolean before = nowDate.before(userBookedHouse.getCheckIn());
 
-    User user = userService.getUserByAuth();
-    House house = houseService.findById(id).orElseThrow(()
-      -> new UsernameNotFoundException("House is not found : "));
-    if (house == null || house.getIsRented()) {
-      return new ResponseEntity<>(new ResponseMessage("House is deleted or rented"),
-        HttpStatus.BAD_REQUEST);
+      User user = userService.getUserByAuth();
+      House house = houseService.findById(id);
+      if (house.getIsRented()) {
+        return new ResponseEntity<>(new ResponseMessage("House is rented"),
+          HttpStatus.BAD_REQUEST);
+      }
+      if (after && before) {
+        UserBookedHouse bookedHouse = new UserBookedHouse(user, house, nowDate,
+          userBookedHouse.getCheckIn(), userBookedHouse.getCheckOut());
+        house.setIsRented(true);
+        houseService.save(house);
+        userBookedHouseService.save(bookedHouse);
+        return new ResponseEntity<>(new ResponseMessage("Rented  successfully"), HttpStatus.OK);
+      }
+      return new ResponseEntity<>(new ResponseMessage("Checkin and Checkout dates are invalid"), HttpStatus.BAD_REQUEST);
+    } catch (EntityNotFoundException e){
+      return new ResponseEntity<>(new ResponseMessage(e.getMessage()),HttpStatus.NOT_FOUND);
     }
-    if (after && before) {
-      UserBookedHouse bookedHouse = new UserBookedHouse(user, house, nowDate,
-        userBookedHouse.getCheckIn(), userBookedHouse.getCheckOut());
-      house.setIsRented(true);
-      houseService.save(house);
-      userBookedHouseService.save(bookedHouse);
-      return new ResponseEntity<>(new ResponseMessage("Rented  successfully"), HttpStatus.OK);
-    }
-    return new ResponseEntity<>(new ResponseMessage("House is deleted or rented"), HttpStatus.OK);
   }
 
   @GetMapping
@@ -66,9 +68,9 @@ public class UserBookedHouseController {
     User user = userService.getUserByAuth();
     List<UserBookedHouse>userBookedHouses = userBookedHouseService.findByUserBook(user);
     if (userBookedHouses.isEmpty()){
-      return  new ResponseEntity<List<UserBookedHouse>>(HttpStatus.NO_CONTENT);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    return new ResponseEntity<List<UserBookedHouse>>(userBookedHouses,HttpStatus.OK);
+    return new ResponseEntity<>(userBookedHouses, HttpStatus.OK);
   }
 
   @GetMapping("owner/{name}")
@@ -76,7 +78,7 @@ public class UserBookedHouseController {
     UserBookedHouse userBookedHouse = userBookedHouseService.findByHouseName(name);
     User user = userBookedHouse.getUser();
     if (userBookedHouse != null){
-      return new ResponseEntity<UserBookedHouse>(userBookedHouse,HttpStatus.OK);
+      return new ResponseEntity<>(userBookedHouse, HttpStatus.OK);
     }
     return  new ResponseEntity<UserBookedHouse>(HttpStatus.NO_CONTENT);
 

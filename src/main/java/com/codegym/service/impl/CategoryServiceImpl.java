@@ -6,6 +6,10 @@ import com.codegym.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -24,8 +28,13 @@ public class CategoryServiceImpl implements CategoryService {
 
 
   @Override
-  public Category findByCategoryName(String name) {
-    return categoryRepository.findByName(name);
+  public Category findByName(String name) throws EntityNotFoundException {
+    return categoryRepository.findByName(name).orElseThrow(EntityNotFoundException::new);
+  }
+
+  @Override
+  public List<Category> findAll() {
+    return categoryRepository.findAll();
   }
 
 

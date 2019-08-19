@@ -4,8 +4,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "house")
@@ -32,13 +31,30 @@ public class House {
 
   private Integer pricePerNight;
 
-  @OneToMany(targetEntity = House.class)
-  private Set<Image> listImages;
+  @OneToMany(targetEntity = Image.class,cascade = {CascadeType.ALL},fetch = FetchType.EAGER)
+//  @JoinTable(name = "house_image",
+//    joinColumns = @JoinColumn(name = "house_id"),
+//    inverseJoinColumns = @JoinColumn(name = "image_id"))
+  private List<Image> images;
 
   private Boolean isRented;
 
   @Enumerated(EnumType.STRING)
   private HouseStatus status;
+
+  public House(@NotBlank @Size(min = 2, max = 50) String name, @NotBlank @Size(min = 2) String address, Integer bedRooms, Integer bathRooms, @NotBlank @Size(min = 2) String description, Integer pricePerNight, List<Image> images, Boolean isRented, HouseStatus status, Category category, User owner) {
+    this.name = name;
+    this.address = address;
+    this.bedRooms = bedRooms;
+    this.bathRooms = bathRooms;
+    this.description = description;
+    this.pricePerNight = pricePerNight;
+    this.images = images;
+    this.isRented = isRented;
+    this.status = status;
+    this.category = category;
+    this.owner = owner;
+  }
 
   public HouseStatus getHouseStatus() {
     return status;
@@ -48,7 +64,7 @@ public class House {
     this.status = status;
   }
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.ALL})
   @JoinColumn(name = "category_id")
   private Category category;
 
@@ -142,12 +158,12 @@ public class House {
   }
 
 
-  public Set<Image> getListImages() {
-    return listImages;
+  public List<Image> getImages() {
+    return images;
   }
 
-  public void setListImages(Set<Image> listImages) {
-    this.listImages = listImages;
+  public void setImages(List<Image> images) {
+    this.images = images;
   }
 
   public Category getCategory() {

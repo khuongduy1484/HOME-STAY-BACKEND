@@ -8,6 +8,7 @@ import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +23,8 @@ public class HouseServiceImpl implements HouseService {
   }
 
   @Override
-  public Optional<House> findById(Long id) {
-    return houseRepository.findById(id);
+  public House findById (Long id)throws EntityNotFoundException {
+    return houseRepository.findById(id).orElseThrow(EntityNotFoundException::new);
   }
 
   @Override

@@ -2,7 +2,6 @@ package com.codegym.message.request;
 
 import com.codegym.model.Gender;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
 import java.util.Date;
@@ -36,14 +35,14 @@ public class SignUpForm {
   @Size(min = 6, max = 40)
   private String password;
 
-  private MultipartFile avatar;
+  private String avatarUrl;
 
-  public MultipartFile getAvatar() {
-    return avatar;
+  public String getAvatarUrl() {
+    return avatarUrl;
   }
 
-  public void setAvatar(MultipartFile avatar) {
-    this.avatar = avatar;
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 
 

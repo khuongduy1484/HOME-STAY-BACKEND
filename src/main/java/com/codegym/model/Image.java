@@ -5,14 +5,18 @@ import javax.persistence.*;
 @Entity
 public class Image {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
-  private String fileName;
-  @ManyToOne
-  @JoinColumn(name = "house_id")
+  private String imageUrl;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "house_id",referencedColumnName = "id")
   private House house;
 
   public Image() {
+  }
+
+  public Image(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public Long getId() {
@@ -23,12 +27,12 @@ public class Image {
     this.id = id;
   }
 
-  public String getFileName() {
-    return fileName;
+  public String getImageUrl() {
+    return imageUrl;
   }
 
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public House getHouse() {

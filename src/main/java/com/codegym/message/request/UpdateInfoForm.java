@@ -24,18 +24,18 @@ public class UpdateInfoForm {
   @Pattern(regexp = "0([0-9]{9,10})")
   private String phoneNumber;
 
-  private MultipartFile avatar;
+  private String avatarUrl;
 
   public UpdateInfoForm() {
   }
 
-  public UpdateInfoForm(@Size(min = 3, max = 50) String name, @Past Date birthday, Gender gender, String address, String phoneNumber, MultipartFile avatar) {
+  public UpdateInfoForm(@Size(min = 3, max = 50) String name, @Past Date birthday, Gender gender, String address, String phoneNumber, String avatarUrl) {
     this.name = name;
     this.birthday = birthday;
     this.gender = gender;
     this.address = address;
     this.phoneNumber = phoneNumber;
-    this.avatar = avatar;
+    this.avatarUrl = avatarUrl;
   }
 
   public String getName() {
@@ -78,11 +78,11 @@ public class UpdateInfoForm {
     this.phoneNumber = phoneNumber;
   }
 
-  public MultipartFile getAvatar() {
-    return avatar;
+  public String getAvatarUrl() {
+    return avatarUrl;
   }
 
-  public void setAvatar(MultipartFile avatar) {
-    this.avatar = avatar;
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 }

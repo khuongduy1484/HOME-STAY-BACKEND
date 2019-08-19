@@ -7,12 +7,10 @@ import com.codegym.message.response.ResponseMessage;
 import com.codegym.model.User;
 import com.codegym.security.jwt.JwtAuthTokenFilter;
 import com.codegym.security.jwt.JwtProvider;
-import com.codegym.security.services.MultipartFileService;
 import com.codegym.security.services.UserDetailsServiceImpl;
 import com.codegym.security.services.UserPrinciple;
 import com.codegym.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,18 +33,12 @@ public class AuthorizedRestAPIs {
   UserDetailsServiceImpl userDetailsService;
 
   @Autowired
-  private MultipartFileService multipartFileService;
-
-  @Autowired
   JwtAuthTokenFilter authenticationJwtTokenFilter;
   @Autowired
   JwtProvider jwtProvider;
   @Autowired
   PasswordEncoder encoder;
 
-
-  @Value("${upload.location}")
-  private String UPLOAD_LOCATION;
 
   @GetMapping("/test/user")
   @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -69,41 +61,31 @@ public class AuthorizedRestAPIs {
   @PutMapping(value = "/update-info", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('USER') or hasRole('PM') or hasRole('ADMIN')")
   public ResponseEntity<?> updateInfo(HttpServletRequest request, @Valid @ModelAttribute UpdateInfoForm updateInfoForm) {
-    try {
-      User user = getUser(request);
-      if (updateInfoForm.getName() != null) {
-        user.setName(updateInfoForm.getName());
-      }
-      if (updateInfoForm.getBirthday()!=null){
-        user.setBirthday(updateInfoForm.getBirthday());
-      }
-      if (updateInfoForm.getGender()!=null){
-        user.setGender(updateInfoForm.getGender());
-      }
-      if (updateInfoForm.getAddress()!=null){
-        user.setAddress(updateInfoForm.getAddress());
-      }
-      if (updateInfoForm.getPhoneNumber()!=null){
-        if (isExistedByPhoneNumber(user,updateInfoForm.getPhoneNumber())){
-          return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
-            HttpStatus.BAD_REQUEST);
-        }
-        user.setPhoneNumber(updateInfoForm.getPhoneNumber());
-      }
-      if (updateInfoForm.getAvatar()!=null){
-        String avatarFileName = updateInfoForm.getAvatar().getOriginalFilename();
-        user.setAvatarFileName(avatarFileName);
-        String saveLocation = UPLOAD_LOCATION+user.getUsername()+"/avatar/";
-        multipartFileService.saveMultipartFile(saveLocation, updateInfoForm.getAvatar(), avatarFileName);
-      }
-      User save = userService.save(user);
-      UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-      String avatarLink =user.getAvatarFileName()!=null? "resources/images/"+userDetails.getUsername()+"/avatar/"+user.getAvatarFileName():"";
-      JwtResponse jwtResponse = new JwtResponse(authenticationJwtTokenFilter.getJwt(request), userDetails.getUsername(), userDetails.getAuthorities(),avatarLink);
-      return ResponseEntity.ok(jwtResponse);
-    } catch (UsernameNotFoundException exception) {
-      return new ResponseEntity<>(new ResponseMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
+    User user = userService.getUserByAuth();
+    user.setName(updateInfoForm.getName());
+    user.setAddress(updateInfoForm.getAddress());
+    user.setBirthday(updateInfoForm.getBirthday());
+    user.setGender(updateInfoForm.getGender());
+    if (isExistedByPhoneNumber(user, updateInfoForm.getPhoneNumber())) {
+      return new ResponseEntity<>(new ResponseMessage("Fail -> Phone number is already in use"),
+        HttpStatus.BAD_REQUEST);
     }
+    user.setPhoneNumber(updateInfoForm.getPhoneNumber());
+    user.setAvatarUrl(updateInfoForm.getAvatarUrl());
+    User save = userService.save(user);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+    JwtResponse jwtResponse = new JwtResponse(authenticationJwtTokenFilter.getJwt(request), userDetails.getUsername(),
+      userDetails.getAuthorities(), user.getAvatarUrl());
+    return ResponseEntity.ok(jwtResponse);
+
+  }
+
+  @GetMapping("update-info")
+  @PreAuthorize("hasRole('USER') or hasRole('PM') or hasRole('ADMIN')")
+  public ResponseEntity<UpdateInfoForm> getUpdateInfoForm(){
+    User user = userService.getUserByAuth();
+    UpdateInfoForm updateInfoForm = new UpdateInfoForm(user.getName(),user.getBirthday(),user.getGender(),user.getAddress(),user.getPhoneNumber(),user.getAvatarUrl());
+    return new ResponseEntity<UpdateInfoForm>(updateInfoForm,HttpStatus.OK);
   }
 
   @PutMapping(value = "update-password")
@@ -142,7 +124,7 @@ public class AuthorizedRestAPIs {
     String jwt = authenticationJwtTokenFilter.getJwt(request);
     String userName = jwtProvider.getUserNameFromJwtToken(jwt);
     User user = userService.findByUsername(userName).orElseThrow(
-        () -> new UsernameNotFoundException("User Not Found with -> username or email : " + userName));
+      () -> new UsernameNotFoundException("User Not Found with -> username or email : " + userName));
     return user;
   }
 }

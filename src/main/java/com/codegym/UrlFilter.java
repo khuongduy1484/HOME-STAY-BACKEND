@@ -59,6 +59,7 @@
 //
 //        String decoded = URLDecoder.decode(queryString, "UTF-8");
 //        LOGGER.info("Modified query string: "  + decoded);
+//        return decoded;
 //      } catch (UnsupportedEncodingException e) {
 //        e.printStackTrace();
 //      }
